@@ -1,3 +1,5 @@
+package solver
+
 object Process {
   // gives a "pretty-print" string form of the expression
   def stringify(e: Expression): String = e match {
@@ -25,12 +27,6 @@ object Process {
     case Prod(e1, e2)  => eval(e1, varAssn) * eval(e2, varAssn)
     case Power(e1, e2) => Math.pow(eval(e1, varAssn), eval(e2, varAssn))
   }
-  // The method call expects the expression Z to be derived with regard to a variable V. The method returns a pair of the evaluated function and its derivation.
-  def evaluateAndDerive(
-      Z: Expression,
-      V: String
-  ): (Double, Double) = {}
-
   // forms a new expression that simplifies the given expression e: Expression
   // the goal of this function is produce an expression that is easier to
   // evaluate and/or differentiate.  If there's a canonical form you'd like to
