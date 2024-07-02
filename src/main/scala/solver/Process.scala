@@ -25,41 +25,18 @@ object Process {
     case Prod(e1, e2)  => eval(e1, varAssn) * eval(e2, varAssn)
     case Power(e1, e2) => Math.pow(eval(e1, varAssn), eval(e2, varAssn))
   }
-
-  // symbolically differentiates an expression e: Expression with
-  // respect to the variable varName: String
-  def differentiate(e: Expression, varName: String): Expression = e match {
-    case Constant(n)                  => Constant(0)
-    case Var(name) if name == varName => Constant(1)
-    case Var(name) if name != varName => Constant(0)
-    case Sum(fx: Expression, gx: Expression) =>
-      Sum(differentiate(fx, varName), differentiate(gx, varName))
-
-    case Prod(fx: Expression, gx: Expression) =>
-      val term1 = Prod(differentiate(fx, varName), gx)
-      val term2 = Prod(fx, differentiate(gx, varName))
-      Sum(term1, term2)
-
-    case Power(c: Constant, fx: Expression) =>
-      val term1 = Constant(Math.log(eval(c, Map())))
-      val term2 = Power(c, fx)
-      Prod(term1, term2)
-
-    case Power(fx: Expression, h: Constant) =>
-      val term1 = Power(Prod(h, fx), Sum(h, Constant(-1)))
-      val term2 = differentiate(fx, varName)
-      Prod(term1, term2)
-
-  }
+  // The method call expects the expression Z to be derived with regard to a variable V. The method returns a pair of the evaluated function and its derivation.
+  def evaluateAndDerive(
+      Z: Expression,
+      V: String
+  ): (Double, Double) = {}
 
   // forms a new expression that simplifies the given expression e: Expression
   // the goal of this function is produce an expression that is easier to
   // evaluate and/or differentiate.  If there's a canonical form you'd like to
   // follow, use this function to put an expression in this form.
   // you may leave this function blank if can't find any use.
-  def simplify(e: Expression): Expression = {
-
-    ???
-  }
+  //
+  def simplify(e: Expression): Expression = ???
 
 }
