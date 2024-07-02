@@ -1,3 +1,5 @@
+package solver
+
 import scala.util.parsing.combinator._
 
 /*

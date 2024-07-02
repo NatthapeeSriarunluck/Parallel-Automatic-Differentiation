@@ -9,8 +9,8 @@ object Main {
 
     try {
       val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-      val xPartial = exp.evaluateAndDerive(Map("x" -> varAssn("x"), "y" -> varAssn("y"))).partial
-      val yPartial = exp.evaluateAndDerive(Map("x" -> varAssn("x"), "y" -> varAssn("y"))).partial
+      val xPartial = exp.evaluateAndDerive(Map("x" -> varAssn("x"), "y" -> varAssn("y")), "x").partial
+      val yPartial = exp.evaluateAndDerive(Map("x" -> varAssn("x"), "y" -> varAssn("y")), "y").partial
       println(s"The partial derivative with respect to x at the point $varAssn is $xPartial")
       println(s"The partial derivative with respect to y at the point $varAssn is $yPartial")
     } catch {
