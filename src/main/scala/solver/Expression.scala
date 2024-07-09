@@ -14,7 +14,7 @@ sealed trait Expression {
       case _ => None
     }
 }
-object Partial {
+object PartialDerivativeOf  {
   var grads: scala.collection.mutable.Map[String, Double] = scala.collection.mutable.Map()
 }
 
@@ -22,18 +22,17 @@ case class ValueAndPartial(value: Double, partial: Double) {
   def toList: List[Double] = List(value, partial)
 }
 
-case class Constant(n: Double) extends Partial {
+case class Constant(n: Double) extends Expression {
   override def toString: String = s"Const($n)"
 
   override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
     ValueAndPartial(n, 0)
   }
   override def derive(seed: Double, varAssn: Map[String, Double]): Unit = {
-    println("Backward pass for constant")
   }
 }
 
-case class Var(name: String) extends Partial {
+case class Var(name: String) extends Expression {
   var grad: Double = 0
   override def toString: String = s"Var($name)"
 
@@ -45,12 +44,11 @@ case class Var(name: String) extends Partial {
 
 
   override def derive(seed: Double, varAssn: Map[String, Double]): Unit = {
-    println(s"Backward pass for variable $name with seed $seed")
-    Partial.grads(name) = Partial.grads.getOrElse(name, 0.0) + seed
+    PartialDerivativeOf.grads(name) = PartialDerivativeOf.grads.getOrElse(name, 0.0) + seed
   }
 }
 
-case class Sum(e1: Partial, e2: Partial) extends Partial {
+case class Sum(e1: Expression, e2: Expression) extends Expression {
   override def toString: String = s"Sum(${e1.toString}, ${e2.toString})"
 
   override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
@@ -60,20 +58,14 @@ case class Sum(e1: Partial, e2: Partial) extends Partial {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double]): Unit = {
-    println("Backward pass for sum with seed " + seed)
-    println("e1: "+ e1.toString)
-    println("e2: "+ e2.toString)
     e1.value = Process.eval(e1, varAssn)
     e2.value = Process.eval(e2, varAssn)
-    println("e1.value: " + e1.value)
-    println("e2.value: " + e2.value)
-
     e1.derive(seed, varAssn)
     e2.derive(seed, varAssn)
   }
 }
 
-case class Prod(e1: Partial, e2: Partial) extends Partial {
+case class Prod(e1: Expression, e2: Expression) extends Expression {
   override def toString: String = s"Prod(${e1.toString}, ${e2.toString})"
 
   override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
@@ -85,13 +77,12 @@ case class Prod(e1: Partial, e2: Partial) extends Partial {
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
     e1.value = Process.eval(e1, varAssn)
     e2.value = Process.eval(e2, varAssn)
-    println("Backward pass for product with seed " + seed)
     e1.derive(seed * e2.value, varAssn)
     e2.derive(seed * e1.value, varAssn)
   }
 }
 
-case class Power(b: Partial, e: Partial) extends Partial {
+case class Power(b: Expression, e: Expression) extends Expression {
   override def toString: String = s"Power(${b.toString}, ${e.toString})"
 
   override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {

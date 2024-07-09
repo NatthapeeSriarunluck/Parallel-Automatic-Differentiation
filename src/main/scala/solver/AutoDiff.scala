@@ -11,7 +11,7 @@ object AutoDiff{
 
     println("Value of the expression: " + evaluated)
     // Start backward pass from the output
-    expr.backward(1, varAssn)
+    expr.derive(1, varAssn)
   }
 
 }
