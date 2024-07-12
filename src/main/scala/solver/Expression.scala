@@ -12,6 +12,8 @@ sealed trait Expression {
       case Prod(e1, e2) => e1.findVar(name).orElse(e2.findVar(name))
       case Power(b, e) => b.findVar(name).orElse(e.findVar(name))
       case Sin(e) => e.findVar(name)
+      case Cos(e) => e.findVar(name)
+      case Tan(e) => e.findVar(name)
       case _ => None
     }
 }
@@ -116,6 +118,36 @@ case class Sin(e: Expression) extends Expression {
     e.value = Process.eval(e, varAssn)
     e.derive(seed * Math.cos(e.value), varAssn)
   }
-
 }
 
+case class Cos(e: Expression) extends Expression {
+  override def toString: String = s"Cos(${e.toString})"
+
+  override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+    val vp = e.evaluateAndDerive(varAssn, variable)
+    val value = Math.cos(vp.value)
+    val partial = -Math.sin(vp.value) * vp.partial
+    ValueAndPartial(value, partial)
+  }
+
+  override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
+    e.value = Process.eval(e, varAssn)
+    e.derive(seed * -Math.sin(e.value), varAssn)
+  }
+}
+
+case class Tan(e: Expression) extends Expression {
+  override def toString: String = s"Tan(${e.toString})"
+
+  override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+    val vp = e.evaluateAndDerive(varAssn, variable)
+    val value = Math.tan(vp.value)
+    val partial = vp.partial / Math.pow(Math.cos(vp.value), 2)
+    ValueAndPartial(value, partial)
+  }
+
+  override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
+    e.value = Process.eval(e, varAssn)
+    e.derive(seed / Math.pow(Math.cos(e.value), 2), varAssn)
+  }
+}

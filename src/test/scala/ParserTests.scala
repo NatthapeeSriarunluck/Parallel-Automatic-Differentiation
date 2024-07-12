@@ -7,5 +7,18 @@ class ParserTests extends AnyFunSuite:
     assert(exp.toString == "Sin(Var(x))")
   }
 
+  test("cos expression") {
+    val expString = "cos(x)"
+    val exp = solver.Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    assert(exp.toString == "Cos(Var(x))")
+  }
+
+  test("tan expression") {
+
+    val expString = "tan(x)"
+    val exp = solver.Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    assert(exp.toString == "Tan(Var(x))")
+  }
+
 
 

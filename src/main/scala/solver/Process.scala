@@ -28,6 +28,8 @@ object Process {
     case Prod(e1, e2)  => eval(e1, varAssn) * eval(e2, varAssn)
     case Power(e1, e2) => Math.pow(eval(e1, varAssn), eval(e2, varAssn))
     case Sin(e)        => Math.sin(eval(e, varAssn))
+    case Cos(e)        => Math.cos(eval(e, varAssn))
+    case Tan(e)        => Math.tan(eval(e, varAssn))
   }
   // forms a new expression that simplifies the given expression e: Expression
   // the goal of this function is produce an expression that is easier to

@@ -49,7 +49,6 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    println(s"Parsed expression: $exp")
     val evaluated = Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 0.0)
@@ -58,6 +57,63 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
 
   test("sin reverse mode") {
     val expString = "sin(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    AutoDiff.reverseMode(exp, varAssn)
+    val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
+    val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
+    assert(xGrad == 1.0)
+  }
+
+  test ("cos forward mode") {
+    val expString = "cos(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val evaluated = Process.eval(exp, varAssn)
+    val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
+    println(s"Evaluated: $evaluated")
+    println(s"Partial: $xPartial")
+
+    assert(evaluated == 1.0)
+    assert(xPartial == ValueAndPartial(1.0, 0.0))
+  }
+
+  test ("cos reverse mode") {
+    val expString = "cos(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    AutoDiff.reverseMode(exp, varAssn)
+    val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
+    val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
+    println(s"Gradient: $xGrad")
+    assert(xGrad == 0.0)
+  }
+
+  test ("tan forward mode") {
+    val expString = "tan(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    println(s"Parsed expression: $exp")
+    val evaluated = Process.eval(exp, varAssn)
+    val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
+    assert(evaluated == 0.0)
+    assert(xPartial == ValueAndPartial(0.0, 1.0))
+  }
+
+  test ("tan reverse mode") {
+    val expString = "tan(x)"
     val varNames = List("x")
     val varValues = List(0.0)
     val varAssn = varNames.zip(varValues).toMap

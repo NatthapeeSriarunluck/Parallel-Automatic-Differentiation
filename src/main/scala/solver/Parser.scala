@@ -10,7 +10,7 @@ import scala.util.parsing.combinator._
 
 object Parser extends JavaTokenParsers {
 
-  def op: Parser[Expression] = (sin | const | variable |  ("(" ~> expr <~ ")") )
+  def op: Parser[Expression] = (sin | cos | tan | const | variable |  ("(" ~> expr <~ ")") )
   def expr: Parser[Expression] = term ~ (("+"|"-") ~ term).*  ^^ {
     case term ~ Nil => term
     case term ~ repTerms => repTerms.foldLeft(term) {
@@ -42,6 +42,14 @@ object Parser extends JavaTokenParsers {
 
   def sin: Parser[Expression] = ("sin(" ~> expr <~ ")") ^^ {
     case ex => Sin(ex)
+  }
+
+  def cos: Parser[Expression] = ("cos(" ~> expr <~ ")") ^^ {
+    case ex => Cos(ex)
+  }
+
+  def tan: Parser[Expression] = ("tan(" ~> expr <~ ")") ^^ {
+    case ex => Tan(ex)
   }
 
   def apply(input: String): Option[Expression] =
