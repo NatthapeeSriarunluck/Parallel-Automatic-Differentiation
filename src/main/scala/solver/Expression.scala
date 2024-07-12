@@ -11,6 +11,7 @@ sealed trait Expression {
       case Sum(e1, e2) => e1.findVar(name).orElse(e2.findVar(name))
       case Prod(e1, e2) => e1.findVar(name).orElse(e2.findVar(name))
       case Power(b, e) => b.findVar(name).orElse(e.findVar(name))
+      case Sin(e) => e.findVar(name)
       case _ => None
     }
 }
