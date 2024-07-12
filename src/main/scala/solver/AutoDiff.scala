@@ -9,7 +9,7 @@ object AutoDiff{
     // Initialize the values of the expressions
     val evaluated = Process.eval(expr, varAssn)
 
-    println("Value of the expression: " + evaluated)
+//    println("Value of the expression: " + evaluated)
     // Start backward pass from the output
     expr.derive(1, varAssn)
   }

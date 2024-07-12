@@ -68,7 +68,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     assert(xGrad == 1.0)
   }
 
-  test ("cos forward mode") {
+  test("cos forward mode") {
     val expString = "cos(x)"
     val varNames = List("x")
     val varValues = List(0.0)
@@ -77,14 +77,12 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
     val evaluated = Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
-    println(s"Evaluated: $evaluated")
-    println(s"Partial: $xPartial")
 
     assert(evaluated == 1.0)
     assert(xPartial == ValueAndPartial(1.0, 0.0))
   }
 
-  test ("cos reverse mode") {
+  test("cos reverse mode") {
     val expString = "cos(x)"
     val varNames = List("x")
     val varValues = List(0.0)
@@ -94,25 +92,23 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     AutoDiff.reverseMode(exp, varAssn)
     val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
     val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
-    println(s"Gradient: $xGrad")
     assert(xGrad == 0.0)
   }
 
-  test ("tan forward mode") {
+  test("tan forward mode") {
     val expString = "tan(x)"
     val varNames = List("x")
     val varValues = List(0.0)
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    println(s"Parsed expression: $exp")
     val evaluated = Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 0.0)
     assert(xPartial == ValueAndPartial(0.0, 1.0))
   }
 
-  test ("tan reverse mode") {
+  test("tan reverse mode") {
     val expString = "tan(x)"
     val varNames = List("x")
     val varValues = List(0.0)
@@ -122,8 +118,65 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     AutoDiff.reverseMode(exp, varAssn)
     val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
     val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
-    println(s"Gradient: $xGrad")
     assert(xGrad == 1.0)
+  }
+
+  test("mixed trig forward mode") {
+    val expString = "sin(x) + cos(x) + tan(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val evaluated = Process.eval(exp, varAssn)
+    val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
+    assert(evaluated == 1.0)
+    assert(xPartial == ValueAndPartial(1.0, 2.0))
+  }
+
+  test("mixed trig reverse mode") {
+    val expString = "sin(x) + cos(x) + tan(x)"
+    val varNames = List("x")
+    val varValues = List(0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    AutoDiff.reverseMode(exp, varAssn)
+    val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
+    val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
+    assert(xGrad == 2.0)
+
+  }
+
+  test("mixed trig forward mode with multiple variables") {
+    val expString = "sin(x) + cos(y) + tan(x)"
+    val varNames = List("x", "y")
+    val varValues = List(0.0, 0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val evaluated = Process.eval(exp, varAssn)
+    val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
+    val yPartial = AutoDiff.forwardMode(exp, varAssn, "y")
+    assert(evaluated == 1.0)
+    assert(xPartial == ValueAndPartial(1.0, 2.0))
+    assert(yPartial == ValueAndPartial(1.0, 0))
+  }
+
+  test("mixed trig reverse mode with multiple variables") {
+    val expString = "sin(x) + cos(y) + tan(x)"
+    val varNames = List("x", "y")
+    val varValues = List(0.0, 0.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    AutoDiff.reverseMode(exp, varAssn)
+    val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
+    val yVar = exp.findVar("y").getOrElse(throw new Exception("Variable not found"))
+    val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
+    val yGrad = PartialDerivativeOf.grads.getOrElse("y", 0.0)
+    assert(xGrad == 2.0)
+    assert(yGrad == 0)
   }
 }
   

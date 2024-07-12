@@ -20,5 +20,11 @@ class ParserTests extends AnyFunSuite:
     assert(exp.toString == "Tan(Var(x))")
   }
 
+  test("mixed trig expression") {
+    val expString = "sin(x) + cos(x) + tan(x)"
+    val exp = solver.Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    assert(exp.toString ==   "Sum(Sum(Sin(Var(x)), Cos(Var(x))), Tan(Var(x)))")
+  }
+
 
 
