@@ -100,3 +100,21 @@ case class Power(b: Expression, e: Expression) extends Expression {
     e.derive(seed * Math.pow(b.value, e.value) * Math.log(b.value), varAssn)
   }
 }
+
+case class Sin(e: Expression) extends Expression {
+  override def toString: String = s"Sin(${e.toString})"
+
+  override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+    val vp = e.evaluateAndDerive(varAssn, variable)
+    val value = Math.sin(vp.value)
+    val partial = Math.cos(vp.value) * vp.partial
+    ValueAndPartial(value, partial)
+  }
+
+  override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
+    e.value = Process.eval(e, varAssn)
+    e.derive(seed * Math.cos(e.value), varAssn)
+  }
+
+}
+

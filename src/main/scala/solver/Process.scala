@@ -12,6 +12,7 @@ object Process {
     case Prod(l, r @ Sum(_, _)) => stringify(l) + " * (" + stringify(r) + ")"
     case Prod(l, r)             => stringify(l) + " * " + stringify(r)
     case Power(b, e)            => stringify(b) + "^" + stringify(e)
+    case Sin(e)                => "sin(" + stringify(e) + ")"
   }
 
   // evaluates a given expression e: Expression using
@@ -26,6 +27,7 @@ object Process {
     case Sum(e1, e2)   => eval(e1, varAssn) + eval(e2, varAssn)
     case Prod(e1, e2)  => eval(e1, varAssn) * eval(e2, varAssn)
     case Power(e1, e2) => Math.pow(eval(e1, varAssn), eval(e2, varAssn))
+    case Sin(e)        => Math.sin(eval(e, varAssn))
   }
   // forms a new expression that simplifies the given expression e: Expression
   // the goal of this function is produce an expression that is easier to

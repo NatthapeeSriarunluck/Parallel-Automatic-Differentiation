@@ -13,5 +13,4 @@ object AutoDiff{
     // Start backward pass from the output
     expr.derive(1, varAssn)
   }
-
 }

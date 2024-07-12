@@ -9,6 +9,8 @@ import scala.util.parsing.combinator._
  */
 
 object Parser extends JavaTokenParsers {
+
+  def op: Parser[Expression] = (sin | const | variable |  ("(" ~> expr <~ ")") )
   def expr: Parser[Expression] = term ~ (("+"|"-") ~ term).*  ^^ {
     case term ~ Nil => term
     case term ~ repTerms => repTerms.foldLeft(term) {
@@ -31,13 +33,15 @@ object Parser extends JavaTokenParsers {
     case _ => throw new Exception("shouldn't get here")
   }
 
-  def op: Parser[Expression] = ( const | variable | ("(" ~> expr <~ ")") )
-
   def variable: Parser[Expression] = ("""[a-zA-Z]""".r) ^^ {
     case varName => Var(varName)
   }
   def const: Parser[Expression] = floatingPointNumber ^^ {
     case numStr => Constant(numStr.toFloat)
+  }
+
+  def sin: Parser[Expression] = ("sin(" ~> expr <~ ")") ^^ {
+    case ex => Sin(ex)
   }
 
   def apply(input: String): Option[Expression] =
