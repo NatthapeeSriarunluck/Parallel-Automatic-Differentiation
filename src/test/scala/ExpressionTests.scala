@@ -178,6 +178,34 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     assert(xGrad == 2.0)
     assert(yGrad == 0)
   }
+
+  test("ln forward mode") {
+    val expString = "ln(x)"
+    val varNames = List("x")
+    val varValues = List(1.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val evaluated = Process.eval(exp, varAssn)
+    val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
+    assert(evaluated == 0.0)
+    assert(xPartial == ValueAndPartial(0.0, 1.0))
+  }
+
+  test("ln reverse mode") {
+    val expString = "ln(x)"
+    val varNames = List("x")
+    val varValues = List(1.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    AutoDiff.reverseMode(exp, varAssn)
+    val xVar = exp.findVar("x").getOrElse(throw new Exception("Variable not found"))
+    val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
+    assert(xGrad == 1.0)
+  }
+
+
 }
   
   

@@ -13,6 +13,9 @@ object Process {
     case Prod(l, r)             => stringify(l) + " * " + stringify(r)
     case Power(b, e)            => stringify(b) + "^" + stringify(e)
     case Sin(e)                => "sin(" + stringify(e) + ")"
+    case Cos(e)                => "cos(" + stringify(e) + ")"
+    case Tan(e)                => "tan(" + stringify(e) + ")"
+    case Ln(e)                 => "ln(" + stringify(e) + ")"
   }
 
   // evaluates a given expression e: Expression using
@@ -30,6 +33,7 @@ object Process {
     case Sin(e)        => Math.sin(eval(e, varAssn))
     case Cos(e)        => Math.cos(eval(e, varAssn))
     case Tan(e)        => Math.tan(eval(e, varAssn))
+    case Ln(e)         => Math.log(eval(e, varAssn))
   }
   // forms a new expression that simplifies the given expression e: Expression
   // the goal of this function is produce an expression that is easier to

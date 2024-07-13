@@ -14,6 +14,7 @@ sealed trait Expression {
       case Sin(e) => e.findVar(name)
       case Cos(e) => e.findVar(name)
       case Tan(e) => e.findVar(name)
+        case Ln(e) => e.findVar(name)
       case _ => None
     }
 }
@@ -149,5 +150,22 @@ case class Tan(e: Expression) extends Expression {
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
     e.value = Process.eval(e, varAssn)
     e.derive(seed / Math.pow(Math.cos(e.value), 2), varAssn)
+  }
+}
+
+
+case class Ln(e: Expression) extends Expression {
+  override def toString: String = s"Ln(${e.toString})"
+
+  override def evaluateAndDerive(varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+    val vp = e.evaluateAndDerive(varAssn, variable)
+    val value = Math.log(vp.value)
+    val partial = vp.partial / vp.value
+    ValueAndPartial(value, partial)
+  }
+
+  override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
+    e.value = Process.eval(e, varAssn)
+    e.derive(seed / e.value, varAssn)
   }
 }
