@@ -1,4 +1,6 @@
-package solver
+package sequential_ad
+
+import sequential_ad.*
 
 object Process {
   // gives a "pretty-print" string form of the expression

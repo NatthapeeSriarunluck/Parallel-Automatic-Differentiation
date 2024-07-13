@@ -1,4 +1,4 @@
-package solver
+package sequential_ad 
 
 import scala.util.parsing.combinator._
 

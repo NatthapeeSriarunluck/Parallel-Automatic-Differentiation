@@ -1,4 +1,4 @@
-package solver
+package sequential_ad
 
 sealed trait Expression {
   var value: Double = 0
@@ -18,6 +18,7 @@ sealed trait Expression {
       case _ => None
     }
 }
+
 object PartialDerivativeOf  {
   var grads: scala.collection.mutable.Map[String, Double] = scala.collection.mutable.Map()
 }
@@ -63,7 +64,7 @@ case class Sum(e1: Expression, e2: Expression) extends Expression {
 
   override def derive(seed: Double, varAssn: Map[String, Double]): Unit = {
     e1.value = Process.eval(e1, varAssn)
-    e2.value = Process.eval(e2, varAssn)
+    e2.value = sequential_ad.Process.eval(e2, varAssn)
     e1.derive(seed, varAssn)
     e2.derive(seed, varAssn)
   }
@@ -79,8 +80,8 @@ case class Prod(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    e1.value = Process.eval(e1, varAssn)
-    e2.value = Process.eval(e2, varAssn)
+    e1.value = sequential_ad.Process.eval(e1, varAssn)
+    e2.value = sequential_ad.Process.eval(e2, varAssn)
     e1.derive(seed * e2.value, varAssn)
     e2.derive(seed * e1.value, varAssn)
   }
@@ -98,8 +99,8 @@ case class Power(b: Expression, e: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    b.value = Process.eval(b, varAssn)
-    e.value = Process.eval(e, varAssn)
+    b.value = sequential_ad.Process.eval(b, varAssn)
+    e.value = sequential_ad.Process.eval(e, varAssn)
     b.derive(seed * e.value * Math.pow(b.value, e.value - 1), varAssn)
     e.derive(seed * Math.pow(b.value, e.value) * Math.log(b.value), varAssn)
   }
@@ -116,7 +117,7 @@ case class Sin(e: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    e.value = Process.eval(e, varAssn)
+    e.value = sequential_ad.Process.eval(e, varAssn)
     e.derive(seed * Math.cos(e.value), varAssn)
   }
 }
@@ -132,7 +133,7 @@ case class Cos(e: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    e.value = Process.eval(e, varAssn)
+    e.value = sequential_ad.Process.eval(e, varAssn)
     e.derive(seed * -Math.sin(e.value), varAssn)
   }
 }
@@ -148,7 +149,7 @@ case class Tan(e: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    e.value = Process.eval(e, varAssn)
+    e.value = sequential_ad.Process.eval(e, varAssn)
     e.derive(seed / Math.pow(Math.cos(e.value), 2), varAssn)
   }
 }
@@ -165,7 +166,7 @@ case class Ln(e: Expression) extends Expression {
   }
 
   override def derive(seed: Double, varAssn: Map[String, Double] ): Unit = {
-    e.value = Process.eval(e, varAssn)
+    e.value = sequential_ad.Process.eval(e, varAssn)
     e.derive(seed / e.value, varAssn)
   }
 }

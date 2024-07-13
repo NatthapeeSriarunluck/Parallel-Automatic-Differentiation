@@ -1,6 +1,8 @@
+package sequential_ad
+
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funsuite.AnyFunSuite
-import solver.{AutoDiff, Parser, PartialDerivativeOf, Process, ValueAndPartial};
+import sequential_ad.{AutoDiff, Parser, PartialDerivativeOf, Process, ValueAndPartial}
 
 
 // For more information on writing tests, see
@@ -49,7 +51,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 0.0)
     assert(xPartial == ValueAndPartial(0.0, 1.0))
@@ -75,7 +77,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
 
     assert(evaluated == 1.0)
@@ -102,7 +104,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 0.0)
     assert(xPartial == ValueAndPartial(0.0, 1.0))
@@ -128,7 +130,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 1.0)
     assert(xPartial == ValueAndPartial(1.0, 2.0))
@@ -155,7 +157,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     val yPartial = AutoDiff.forwardMode(exp, varAssn, "y")
     assert(evaluated == 1.0)
@@ -186,7 +188,7 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val varAssn = varNames.zip(varValues).toMap
 
     val exp = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(exp, varAssn)
+    val evaluated = sequential_ad.Process.eval(exp, varAssn)
     val xPartial = AutoDiff.forwardMode(exp, varAssn, "x")
     assert(evaluated == 0.0)
     assert(xPartial == ValueAndPartial(0.0, 1.0))
@@ -204,7 +206,6 @@ class ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
     val xGrad = PartialDerivativeOf.grads.getOrElse("x", 0.0)
     assert(xGrad == 1.0)
   }
-
 
 }
   

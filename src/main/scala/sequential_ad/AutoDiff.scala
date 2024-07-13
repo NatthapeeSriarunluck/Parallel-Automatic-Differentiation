@@ -1,4 +1,4 @@
-package solver
+package sequential_ad
 
 object AutoDiff{
   def forwardMode(e: Expression, varAssn: Map[String, Double], variable: String): ValueAndPartial = {
