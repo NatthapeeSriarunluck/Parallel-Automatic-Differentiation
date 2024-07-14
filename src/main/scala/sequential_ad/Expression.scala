@@ -107,9 +107,8 @@ case class Prod(e1: Expression, e2: Expression) extends Expression {
     ValueOf.UpdateValue(e1.toString, e1Value)
     val e2Value = Process.eval(e2, varAssn)
     ValueOf.UpdateValue(e2.toString, e2Value)
-    e1.backward(seed, varAssn)
-    e2.backward(seed, varAssn)
-
+    e1.backward(seed * e2Value, varAssn)
+    e2.backward(seed * e1Value, varAssn)
   }
 }
 

@@ -14,9 +14,11 @@ object AutoDiff {
   }
 
   def reverseMode(
-      expr: Expression,
+      expString:String,
       varAssn: Map[String, Double]
   ): (Double, Map[String, Double]) = {
+
+    val expr = Parser(expString).getOrElse(throw new Exception("Invalid expression"))
     val evaluated = Process.eval(expr, varAssn)
     val backwardResult: Unit = expr.backward(1, varAssn)
 
