@@ -100,4 +100,19 @@ class Par_ExpressionsTests_Forward_Mode extends AnyFunSuite with BeforeAndAfterE
     val forwardResultY = Await.result(forwardResultYFuture, Duration.Inf)
     assert(forwardResultY.partial == Math.pow(2.0, 3.0) * Math.log(2.0)) // 2^3 * ln(2)
   }
+  
+  test("check differentiation of x * (x + y) + y * y at x = 2, y = 3") {
+    val expString = "x * (x + y) + y * y"
+    val varNames = List("x", "y")
+    val varValues = List(2.0, 3.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val forwardResultXFuture = Par_AutoDiff.forwardMode(expString, varAssn, "x")
+    val forwardResultX = Await.result(forwardResultXFuture, Duration.Inf)
+    assert(forwardResultX.partial == 7.0)
+
+    val forwardResultYFuture = Par_AutoDiff.forwardMode(expString, varAssn, "y")
+    val forwardResultY = Await.result(forwardResultYFuture, Duration.Inf)
+    assert(forwardResultY.partial == 8.0)
+  }
 }

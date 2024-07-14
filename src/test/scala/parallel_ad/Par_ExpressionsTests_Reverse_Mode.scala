@@ -91,6 +91,18 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     assert(reverseResult("x") == 3 * Math.pow(2.0, 2.0)) // 3 * 2^(3-1) = 3 * 4 = 12
     assert(reverseResult("y") == Math.pow(2.0, 3.0) * Math.log(2.0)) // 2^3 * ln(2)
   }
+
+  test("check differentiation of x * (x + y) + y * y at x = 2, y = 3") {
+    val expString = "x * (x + y) + y * y"
+    val varNames = List("x", "y")
+    val varValues = List(2.0, 3.0)
+    val varAssn = varNames.zip(varValues).toMap
+
+    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
+    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    assert(reverseResult("x") == 7.0)
+    assert(reverseResult("y") == 8.0)
+  }
 }
 
 
