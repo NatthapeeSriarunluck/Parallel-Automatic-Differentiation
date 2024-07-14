@@ -2,7 +2,7 @@ package sequential_ad
 
 object AutoDiff{
   def forwardMode(e: Expression, varAssn: Map[String, Double], variable: String): ValueAndPartial = {
-    e.evaluateAndDerive(varAssn, variable)
+    e.forward(varAssn, variable)
   }
 
   def reverseMode(expr: Expression, varAssn: Map[String, Double]): Unit = {
@@ -11,6 +11,6 @@ object AutoDiff{
 
 //    println("Value of the expression: " + evaluated)
     // Start backward pass from the output
-    expr.derive(1, varAssn)
+    expr.backward(1, varAssn)
   }
 }
