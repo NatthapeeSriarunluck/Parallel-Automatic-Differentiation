@@ -6,7 +6,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Success, Failure}
 
 sealed trait Par_Expression {
-  def forward(varAssn: Map[String, Double], variable: String): ValueAndPartial
+  def forward(
+      varAssn: Map[String, Double],
+      variable: String
+  ): Future[ValueAndPartial]
   def backward(seed: Double, varAssn: Map[String, Double]): Future[Unit]
 
   def findVar(name: String): Option[Var] = this match {
@@ -48,8 +51,10 @@ case class Constant(n: Double) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    ValueAndPartial(n, 0)
+  ): Future[ValueAndPartial] ={
+    Future {
+      ValueAndPartial(n, 0)
+    }
   }
 
   override def backward(
@@ -66,10 +71,11 @@ case class Var(name: String) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val value = varAssn(name)
-    val partial = if (name == variable) 1 else 0
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial] = {
+    Future {
+      val value = varAssn.getOrElse(name, 0.0)
+      ValueAndPartial(value, if (name == variable) 1 else 0)
+    }
   }
 
   override def backward(
@@ -86,10 +92,11 @@ case class Sum(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp1 = e1.forward(varAssn, variable)
-    val vp2 = e2.forward(varAssn, variable)
-    ValueAndPartial(vp1.value + vp2.value, vp1.partial + vp2.partial)
+  ): Future[ValueAndPartial] = {
+    for {
+      vp1 <- e1.forward(varAssn, variable)
+      vp2 <- e2.forward(varAssn, variable)
+    } yield ValueAndPartial(vp1.value + vp2.value, vp1.partial + vp2.partial)
   }
 
   override def backward(
@@ -113,12 +120,13 @@ case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp1 = e1.forward(varAssn, variable)
-    val vp2 = e2.forward(varAssn, variable)
-    ValueAndPartial(
+  ): Future[ValueAndPartial] = {
+    for {
+      vp1 <- e1.forward(varAssn, variable)
+      vp2 <- e2.forward(varAssn, variable)
+    } yield ValueAndPartial(
       vp1.value * vp2.value,
-      vp2.value * vp1.partial + vp1.value * vp2.partial
+      vp1.value * vp2.partial + vp1.partial * vp2.value
     )
   }
 
@@ -147,14 +155,15 @@ case class Power(e1: Par_Expression, e2: Par_Expression)
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vpB = e1.forward(varAssn, variable)
-    val vpE = e2.forward(varAssn, variable)
-    val value = Math.pow(vpB.value, vpE.value)
-    val partial = value * (vpE.value / vpB.value * vpB.partial + Math.log(
-      vpB.value
-    ) * vpE.partial)
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial] = {
+    for {
+      vp1 <- e1.forward(varAssn, variable)
+      vp2 <- e2.forward(varAssn, variable)
+    } yield ValueAndPartial(
+      Math.pow(vp1.value, vp2.value),
+      Math.pow(vp1.value, vp2.value - 1) * vp2.value * vp1.partial +
+        Math.pow(vp1.value, vp2.value) * Math.log(vp1.value) * vp2.partial
+    )
   }
 
   override def backward(
@@ -181,11 +190,10 @@ case class Sin(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp = e.forward(varAssn, variable)
-    val value = Math.sin(vp.value)
-    val partial = Math.cos(vp.value) * vp.partial
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial] = {
+    for {
+      vp <- e.forward(varAssn, variable)
+    } yield ValueAndPartial(Math.sin(vp.value), Math.cos(vp.value) * vp.partial)
   }
 
   override def backward(
@@ -206,11 +214,10 @@ case class Cos(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp = e.forward(varAssn, variable)
-    val value = Math.cos(vp.value)
-    val partial = -Math.sin(vp.value) * vp.partial
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial] = {
+    for {
+      vp <- e.forward(varAssn, variable)
+    } yield ValueAndPartial(Math.cos(vp.value), -Math.sin(vp.value) * vp.partial)
   }
 
   override def backward(
@@ -232,11 +239,10 @@ case class Tan(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp = e.forward(varAssn, variable)
-    val value = Math.tan(vp.value)
-    val partial = vp.partial / Math.pow(Math.cos(vp.value), 2)
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial] = {
+    for {
+      vp <- e.forward(varAssn, variable)
+    } yield ValueAndPartial(Math.tan(vp.value), Math.pow(1 / Math.cos(vp.value), 2) * vp.partial)
   }
 
   override def backward(
@@ -257,11 +263,10 @@ case class Ln(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): ValueAndPartial = {
-    val vp = e.forward(varAssn, variable)
-    val value = Math.log(vp.value)
-    val partial = vp.partial / vp.value
-    ValueAndPartial(value, partial)
+  ): Future[ValueAndPartial]= {
+    for {
+      vp <- e.forward(varAssn, variable)
+    } yield ValueAndPartial(Math.log(vp.value), vp.partial / vp.value)
   }
 
   override def backward(
