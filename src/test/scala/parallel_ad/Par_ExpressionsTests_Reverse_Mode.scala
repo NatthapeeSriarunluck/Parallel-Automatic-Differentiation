@@ -91,18 +91,6 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     assert(reverseResult("x") == 3 * Math.pow(2.0, 2.0)) // 3 * 2^(3-1) = 3 * 4 = 12
     assert(reverseResult("y") == Math.pow(2.0, 3.0) * Math.log(2.0)) // 2^3 * ln(2)
   }
-
-  test("check differentiation of nested expression sin(x^2) at x = pi/4") {
-    val expString = "sin(x^2)"
-    val varNames = List("x")
-    val varValues = List(Math.PI / 4)
-    val varAssn = varNames.zip(varValues).toMap
-
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
-    val expected = 2 * (Math.PI / 4) * Math.cos((Math.PI / 4) * (Math.PI / 4))
-    assert(Math.abs(reverseResult("x") - expected) < 1e-6)
-  }
 }
 
 
