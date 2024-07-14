@@ -1,16 +1,30 @@
 package parallel_ad
 
-object Par_AutoDiff{
-  def forwardMode(e: Par_Expression, varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+object Par_AutoDiff {
+  def forwardMode(
+      e: Par_Expression,
+      varAssn: Map[String, Double],
+      variable: String
+  ): ValueAndPartial = {
     e.forward(varAssn, variable)
   }
 
-  def reverseMode(expr:Par_Expression, varAssn: Map[String, Double]): Unit = {
-    // Initialize the values of the expressions
-    val evaluated = Par_Process.eval(expr, varAssn)
+  def reverseMode(
+      expString : String,
+      varAssn: Map[String, Double]
+  ): Future[Map[String, Double]] = {
+    val expr = Par_Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val backwardFuture = expr.backward(1, varAssn)
+    backwardFuture.map { _ =>
+      varAssn.keys.map { key =>
+        val grad = PartialDerivativeOf.grads.getOrElse(key, 0.0)
+        (key, grad)
+      }.toMap
+    }
 
-//    println("Value of the expression: " + evaluated)
-    // Start backward pass from the output
-    expr.backward(1, varAssn)
+    // ...
   }
 }
