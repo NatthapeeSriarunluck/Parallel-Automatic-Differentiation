@@ -1,7 +1,11 @@
 package sequential_ad
 
-object AutoDiff{
-  def forwardMode(e: Expression, varAssn: Map[String, Double], variable: String): ValueAndPartial = {
+object AutoDiff {
+  def forwardMode(
+      e: Expression,
+      varAssn: Map[String, Double],
+      variable: String
+  ): ValueAndPartial = {
     e.forward(varAssn, variable)
   }
 

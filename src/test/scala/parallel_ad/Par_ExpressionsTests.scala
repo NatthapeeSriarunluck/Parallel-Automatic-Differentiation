@@ -12,10 +12,12 @@ import parallel_ad.{
 
 // For more information on writing tests, see
 // https://scalameta.org/munit/docs/getting-started.html
-class Par_ExpressionTests extends AnyFunSuite with BeforeAndAfterEach {
+class Par_ExpressionsTests extends AnyFunSuite with BeforeAndAfterEach {
   override def beforeEach(): Unit = {
     PartialDerivativeOf.grads.clear()
+    ValueOf.values.clear()
     super.beforeEach() // To be stackable, must call super.beforeEach()
+    
   }
 
   test("basic foward mode") {
