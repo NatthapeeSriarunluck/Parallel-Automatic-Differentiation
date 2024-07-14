@@ -1,11 +1,8 @@
 package sequential_ad
 
 sealed trait Expression {
-  var value: Double = 0
-  var partial: Double = 0
-
   def forward(varAssn: Map[String, Double], variable: String): ValueAndPartial
-  def backward(seed: Double, varAssn: Map[String, Double]): Unit
+  def backward(seed: Double, varAssn: Map[String, Double]):Unit
   def findVar(name: String): Option[Var] = this match {
     case v: Var if v.name == name => Some(v)
     case Sum(e1, e2)              => e1.findVar(name).orElse(e2.findVar(name))
@@ -22,6 +19,17 @@ sealed trait Expression {
 object PartialDerivativeOf {
   var grads: scala.collection.mutable.Map[String, Double] =
     scala.collection.mutable.Map()
+  def UpdateGrad(name: String, value: Double): Unit = {
+    grads(name) = grads.getOrElse(name, 0.0) + value
+  }
+}
+
+object ValueOf {
+  var values: scala.collection.mutable.Map[String, Double] =
+    scala.collection.mutable.Map()
+  def UpdateValue(name: String, value: Double): Unit = {
+    values(name) = value
+  }
 }
 
 case class ValueAndPartial(value: Double, partial: Double) {
@@ -43,14 +51,12 @@ case class Constant(n: Double) extends Expression {
 case class Var(name: String) extends Expression {
   var grad: Double = 0
   override def toString: String = s"Var($name)"
-
   override def forward(
       varAssn: Map[String, Double],
       variable: String
   ): ValueAndPartial = {
-    value = varAssn(name)
-    partial = if (name == variable) 1 else 0
-    ValueAndPartial(value, partial)
+    val value = varAssn(name)
+    ValueAndPartial(value, if (name == variable) 1 else 0)
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
@@ -72,8 +78,10 @@ case class Sum(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e1.value = Process.eval(e1, varAssn)
-    e2.value = Process.eval(e2, varAssn)
+    val e1Value = Process.eval(e1, varAssn)
+    val e2Value = Process.eval(e2, varAssn)
+    ValueOf.UpdateValue(e1.toString, e1Value)
+    ValueOf.UpdateValue(e2.toString, e2Value)
     e1.backward(seed, varAssn)
     e2.backward(seed, varAssn)
   }
@@ -95,22 +103,25 @@ case class Prod(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e1.value = sequential_ad.Process.eval(e1, varAssn)
-    e2.value = sequential_ad.Process.eval(e2, varAssn)
-    e1.backward(seed * e2.value, varAssn)
-    e2.backward(seed * e1.value, varAssn)
+    val e1Value = Process.eval(e1, varAssn)
+    ValueOf.UpdateValue(e1.toString, e1Value)
+    val e2Value = Process.eval(e2, varAssn)
+    ValueOf.UpdateValue(e2.toString, e2Value)
+    e1.backward(seed, varAssn)
+    e2.backward(seed, varAssn)
+
   }
 }
 
-case class Power(b: Expression, e: Expression) extends Expression {
-  override def toString: String = s"Power(${b.toString}, ${e.toString})"
+case class Power(e1: Expression, e2: Expression) extends Expression {
+  override def toString: String = s"Power(${e1.toString}, ${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
       variable: String
   ): ValueAndPartial = {
-    val vpB = b.forward(varAssn, variable)
-    val vpE = e.forward(varAssn, variable)
+    val vpB = e1.forward(varAssn, variable)
+    val vpE = e2.forward(varAssn, variable)
     val value = Math.pow(vpB.value, vpE.value)
     val partial = value * (vpE.value / vpB.value * vpB.partial + Math.log(
       vpB.value
@@ -119,10 +130,19 @@ case class Power(b: Expression, e: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    b.value = sequential_ad.Process.eval(b, varAssn)
-    e.value = sequential_ad.Process.eval(e, varAssn)
-    b.backward(seed * e.value * Math.pow(b.value, e.value - 1), varAssn)
-    e.backward(seed * Math.pow(b.value, e.value) * Math.log(b.value), varAssn)
+    val e1Value = Process.eval(e1, varAssn)
+    val e2Value = Process.eval(e2, varAssn)
+    ValueOf.UpdateValue(e1.toString, e1Value)
+    ValueOf.UpdateValue(e2.toString, e2Value)
+    e1.backward(
+      seed * Math.pow(e1Value, e2Value) * e2Value / e1Value,
+      varAssn
+    )
+    e2.backward(
+      seed * Math.pow(e1Value, e2Value) * Math.log(e1Value),
+      varAssn
+    )
+
   }
 }
 
@@ -140,8 +160,10 @@ case class Sin(e: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e.value = sequential_ad.Process.eval(e, varAssn)
-    e.backward(seed * Math.cos(e.value), varAssn)
+    val eValue = Process.eval(e, varAssn)
+    ValueOf.UpdateValue(e.toString, eValue)
+    e.backward(seed * Math.cos(eValue), varAssn)
+
   }
 }
 
@@ -159,9 +181,11 @@ case class Cos(e: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e.value = sequential_ad.Process.eval(e, varAssn)
-    e.backward(seed * -Math.sin(e.value), varAssn)
+    val eValue = Process.eval(e, varAssn)
+    ValueOf.UpdateValue(e.toString, eValue)
+    e.backward(seed * -Math.sin(eValue), varAssn)
   }
+
 }
 
 case class Tan(e: Expression) extends Expression {
@@ -178,9 +202,11 @@ case class Tan(e: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e.value = sequential_ad.Process.eval(e, varAssn)
-    e.backward(seed / Math.pow(Math.cos(e.value), 2), varAssn)
+    val eValue = Process.eval(e, varAssn)
+    ValueOf.UpdateValue(e.toString, eValue)
+    e.backward(seed / Math.pow(Math.cos(eValue), 2), varAssn)
   }
+
 }
 
 case class Ln(e: Expression) extends Expression {
@@ -197,7 +223,8 @@ case class Ln(e: Expression) extends Expression {
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
-    e.value = sequential_ad.Process.eval(e, varAssn)
-    e.backward(seed / e.value, varAssn)
+    val eValue = Process.eval(e, varAssn)
+    ValueOf.UpdateValue(e.toString, eValue)
+    e.backward(seed / eValue, varAssn)
   }
 }
