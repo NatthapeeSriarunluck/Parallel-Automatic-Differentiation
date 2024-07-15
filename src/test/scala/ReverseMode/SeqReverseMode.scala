@@ -27,4 +27,5 @@ class SeqReverseMode extends AnyFunSuite with BeforeAndAfterEach {
   testReverseModeAutoDiffs("check differentiation of ln(x) at x = 1", "ln(x)", List("x"), List(1.0), Map("x" -> 1.0))
   testReverseModeAutoDiffs("check differentiation of x^y at x = 2, y = 3", "x^y", List("x", "y"), List(2.0, 3.0), Map("x" -> 12.0, "y" -> (Math.pow(2.0, 3.0) * Math.log(2.0))))
   testReverseModeAutoDiffs("check differentiation of x * (x + y) + y * y at x = 2, y = 3", "x * (x + y) + y * y", List("x", "y"), List(2.0, 3.0), Map("x" -> 7.0, "y" -> 8.0))
+  testReverseModeAutoDiffs("check differentiation of x^2 + 2xy at x = 2, y = 3", "x^2 + 2 * x * y", List("x", "y"), List(2.0, 3.0), Map("x" -> 10.0, "y" -> 4.0))
 }

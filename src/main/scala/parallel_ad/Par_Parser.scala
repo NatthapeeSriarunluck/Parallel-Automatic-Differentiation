@@ -39,10 +39,11 @@ object Par_Parser extends JavaTokenParsers {
   }
 
 
-  def const: Parser[Par_Expression] = floatingPointNumber ^^ {
-    case numStr => Constant(numStr.toFloat)
+  def const: Parser[Par_Expression] = floatingPointNumber ~ opt(variable) ^^ {
+    case numStr ~ None => Constant(numStr.toFloat)
+    case numStr ~ Some(variable) => Prod(Constant(numStr.toFloat), variable)
   }
-
+  
   def sin: Parser[Par_Expression] = ("sin(" ~> expr <~ ")") ^^ {
     case ex => Sin(ex)
   }

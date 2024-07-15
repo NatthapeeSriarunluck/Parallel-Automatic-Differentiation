@@ -26,4 +26,5 @@ class ParserTests extends AnyFunSuite {
   testParsers("ln expression", "ln(x)", "Ln(Var(x))")
   testParsers("power expression", "x^2", "Power(Var(x),Constant(2.0))")
   testParsers("xy", "xy", "Prod(Var(x),Var(y))")
+  testParsers("x^2 + 2xy", "x^2 + 2xy", "Sum(Power(Var(x),Constant(2.0)),Prod(Constant(2.0),Prod(Var(x),Var(y))))")
 }

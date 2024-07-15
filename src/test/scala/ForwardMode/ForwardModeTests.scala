@@ -86,4 +86,12 @@ class ForwardModeTests extends AnyFunSuite with BeforeAndAfterEach {
     Map("x" -> 7.0, "y" -> 8.0)
   )
   testAutoDiffs("x^2 at x = 2", "x^2", List("x"), List(2.0), Map("x" -> 4.0))
+
+  testAutoDiffs(
+    "x^2 + 2xy at x = 2, y = 3",
+    "x^2 + 2xy",
+    List("x", "y"),
+    List(2.0, 3.0),
+    Map("x" -> 10.0, "y" -> 4.0)
+  )
 }
