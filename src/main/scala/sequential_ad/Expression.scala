@@ -37,7 +37,7 @@ case class ValueAndPartial(value: Double, partial: Double) {
 }
 
 case class Constant(n: Double) extends Expression {
-  override def toString: String = s"Const($n)"
+  override def toString: String = s"Constant($n)"
 
   override def forward(
       varAssn: Map[String, Double],
@@ -66,7 +66,7 @@ case class Var(name: String) extends Expression {
 }
 
 case class Sum(e1: Expression, e2: Expression) extends Expression {
-  override def toString: String = s"Sum(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Sum(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
@@ -113,7 +113,7 @@ case class Prod(e1: Expression, e2: Expression) extends Expression {
 }
 
 case class Power(e1: Expression, e2: Expression) extends Expression {
-  override def toString: String = s"Power(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Power(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
