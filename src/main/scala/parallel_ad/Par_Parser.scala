@@ -33,9 +33,12 @@ object Par_Parser extends JavaTokenParsers {
     case _ => throw new Exception("shouldn't get here")
   }
 
-  def variable: Parser[Par_Expression] = ("""[a-zA-Z]""".r) ^^ {
-    case varName => Var(varName)
+  def variable: Parser[Par_Expression] = rep1("""[a-zA-Z]""".r) ^^ {
+    case varNames if varNames.length == 1 => Var(varNames.head)
+    case varNames => varNames.map(Var).reduceLeft(Prod)
   }
+
+
   def const: Parser[Par_Expression] = floatingPointNumber ^^ {
     case numStr => Constant(numStr.toFloat)
   }

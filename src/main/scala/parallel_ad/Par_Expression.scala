@@ -1,8 +1,7 @@
 package parallel_ad
 
-import scala.concurrent.{Future, ExecutionContext, Await}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait Par_Expression {
   def forward(
@@ -53,7 +52,7 @@ case class ValueAndPartial(value: Double, partial: Double) {
 }
 
 case class Constant(n: Double) extends Par_Expression {
-  override def toString: String = s"Const($n)"
+  override def toString: String = s"Constant($n)"
 
   override def forward(
       varAssn: Map[String, Double],
@@ -96,7 +95,7 @@ case class Var(name: String) extends Par_Expression {
 }
 
 case class Sum(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
-  override def toString: String = s"Sum(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Sum(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
@@ -120,7 +119,7 @@ case class Sum(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
 }
 
 case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
-  override def toString: String = s"Prod(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Prod(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
@@ -154,7 +153,7 @@ case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
 
 case class Power(e1: Par_Expression, e2: Par_Expression)
     extends Par_Expression {
-  override def toString: String = s"Power(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Power(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],

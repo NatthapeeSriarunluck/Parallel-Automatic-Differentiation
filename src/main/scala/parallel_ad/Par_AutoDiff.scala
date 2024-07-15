@@ -1,8 +1,8 @@
 package parallel_ad
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 
 object Par_AutoDiff {
   def forwardMode(

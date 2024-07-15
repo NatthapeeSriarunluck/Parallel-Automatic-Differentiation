@@ -1,40 +1,9 @@
 import parallel_ad.Par_AutoDiff
 import sequential_ad.AutoDiff as SequentialAutoDiff
 
-import scala.concurrent.Future
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
 object Main {
-  def timed[A](name: String)(f: => A): (Double, A) = {
-    println(s"Running $name ...")
-    Console.flush()
-    val start = System.nanoTime
-    val res = f
-    val stop = System.nanoTime
-    println("Done")
-    Console.flush()
-    ((stop - start) / 1e9, res)
-  }
-
-  def generateRandomExpression(variables: List[String], numOperations: Int): String = {
-    val operations = List("+", "-", "*", "sin", "cos", "tan", "ln")
-    val rand = new Random()
-
-    def randomTerm(): String = {
-      val varOrNum = if (rand.nextBoolean()) variables(rand.nextInt(variables.length)) else (rand.nextDouble() * 10).toString
-      val op = operations(rand.nextInt(operations.length))
-      op match {
-        case "+" | "-" | "*" => s"$varOrNum $op ${randomTerm()}"
-        case _ => s"$op($varOrNum)"
-      }
-    }
-
-    (1 to numOperations).map(_ => randomTerm()).mkString(" + ")
-  }
-
   def main(args: Array[String]): Unit = {
     println("Press 1 for manual input, 2 to go crazy :)")
     val choice = scala.io.StdIn.readInt()
@@ -101,5 +70,32 @@ object Main {
     println("========================")
     println(f"Time taken: $tRevPar%.4f seconds")
     println(f"Result: $resRevPar")
+  }
+
+  def timed[A](name: String)(f: => A): (Double, A) = {
+    println(s"Running $name ...")
+    Console.flush()
+    val start = System.nanoTime
+    val res = f
+    val stop = System.nanoTime
+    println("Done")
+    Console.flush()
+    ((stop - start) / 1e9, res)
+  }
+
+  def generateRandomExpression(variables: List[String], numOperations: Int): String = {
+    val operations = List("+", "-", "*", "sin", "cos", "tan", "ln")
+    val rand = new Random()
+
+    def randomTerm(): String = {
+      val varOrNum = if (rand.nextBoolean()) variables(rand.nextInt(variables.length)) else (rand.nextDouble() * 10).toString
+      val op = operations(rand.nextInt(operations.length))
+      op match {
+        case "+" | "-" | "*" => s"$varOrNum $op ${randomTerm()}"
+        case _ => s"$op($varOrNum)"
+      }
+    }
+
+    (1 to numOperations).map(_ => randomTerm()).mkString(" + ")
   }
 }
