@@ -6,13 +6,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object Par_AutoDiff {
   def forwardMode(
       expString: String,
-      varAssn: Map[String, Double],
-      variable: String
-  ): Future[ValueAndPartial] = {
+      varAssn: Map[String, Double]
+  ): Future[Map[String, ValueAndPartial]] = {
     val expr =
       Par_Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    expr.forward(varAssn, variable)
+    val futures = varAssn.keys.map { variable =>
+      expr.forward(varAssn, variable).map(vp => (variable, vp))
+    }
+    Future.sequence(futures).map(_.toMap)
   }
+
   def reverseMode(
       expString: String,
       varAssn: Map[String, Double]
