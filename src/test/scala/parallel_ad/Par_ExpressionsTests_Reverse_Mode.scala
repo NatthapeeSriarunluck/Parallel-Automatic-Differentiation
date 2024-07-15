@@ -17,10 +17,9 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varNames = List("x")
     val varValues = List(2.0)
     val varAssn = varNames.zip(varValues).toMap
-
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
-    assert(reverseResult("x") == 4.0)
+    
+    val result = Par_AutoDiff.reverseMode(expString, varAssn)
+    assert(result("x") == 4.0)
   }
 
   test("check differentiation of x + y at x = 1, y = 2") {
@@ -29,8 +28,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(1.0, 2.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 1.0)
     assert(reverseResult("y") == 1.0)
   }
@@ -41,8 +39,8 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(2.0, 3.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 3.0)
     assert(reverseResult("y") == 2.0)
   }
@@ -53,8 +51,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(Math.PI / 2)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(Math.abs(reverseResult("x")) < 1e-6) // Should be close to 0
   }
 
@@ -64,8 +61,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(0.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 0.0) // Derivative of cos(x) at x = 0 is 0
   }
 
@@ -75,8 +71,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(1.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 1.0) // Derivative of ln(x) at x = 1 is 1
   }
 
@@ -86,8 +81,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(2.0, 3.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 3 * Math.pow(2.0, 2.0)) // 3 * 2^(3-1) = 3 * 4 = 12
     assert(reverseResult("y") == Math.pow(2.0, 3.0) * Math.log(2.0)) // 2^3 * ln(2)
   }
@@ -98,8 +92,7 @@ class Par_ExpressionsTests_Reverse_Mode extends AnyFunSuite with BeforeAndAfterE
     val varValues = List(2.0, 3.0)
     val varAssn = varNames.zip(varValues).toMap
 
-    val reverseResultFuture = Par_AutoDiff.reverseMode(expString, varAssn)
-    val reverseResult = Await.result(reverseResultFuture, Duration.Inf)
+    val reverseResult = Par_AutoDiff.reverseMode(expString, varAssn)
     assert(reverseResult("x") == 7.0)
     assert(reverseResult("y") == 8.0)
   }
