@@ -88,7 +88,7 @@ case class Sum(e1: Expression, e2: Expression) extends Expression {
 }
 
 case class Prod(e1: Expression, e2: Expression) extends Expression {
-  override def toString: String = s"Prod(${e1.toString}, ${e2.toString})"
+  override def toString: String = s"Prod(${e1.toString},${e2.toString})"
 
   override def forward(
       varAssn: Map[String, Double],

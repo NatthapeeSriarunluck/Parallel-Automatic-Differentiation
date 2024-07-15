@@ -19,6 +19,7 @@ object Parser extends JavaTokenParsers {
       case _ => throw new Exception("shouldn't get here")
     }
   }
+
   def term: Parser[Expression] = expo ~ ("*" ~ expo).*  ^^ {
     case ex ~ Nil => ex
     case ex ~ repExs => repExs.foldLeft(ex) {
@@ -33,9 +34,11 @@ object Parser extends JavaTokenParsers {
     case _ => throw new Exception("shouldn't get here")
   }
 
-  def variable: Parser[Expression] = ("""[a-zA-Z]""".r) ^^ {
-    case varName => Var(varName)
+  def variable: Parser[Expression] = rep1("""[a-zA-Z]""".r) ^^ {
+    case varNames if varNames.length == 1 => Var(varNames.head)
+    case varNames => varNames.map(Var).reduceLeft(Prod)
   }
+
   def const: Parser[Expression] = floatingPointNumber ^^ {
     case numStr => Constant(numStr.toFloat)
   }
