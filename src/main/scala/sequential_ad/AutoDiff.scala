@@ -4,18 +4,19 @@ object AutoDiff {
   def forwardMode(
       expString: String,
       varAssn: Map[String, Double]
-  ): Map[String, ValueAndPartial] = {
+  ): Map[String, Double] = {
     val expr =
       Parser(expString).getOrElse(throw new Exception("Invalid expression"))
     varAssn.keys.map { variable =>
-      variable -> expr.forward(varAssn, variable)
+      val vp = expr.forward(varAssn, variable)
+      (variable, vp.partial)
     }.toMap
   }
 
   def reverseMode(
       expString: String,
       varAssn: Map[String, Double]
-  ): (Double, Map[String, Double]) = {
+  ): Map[String, Double] = {
 
     val expr =
       Parser(expString).getOrElse(throw new Exception("Invalid expression"))
@@ -27,6 +28,6 @@ object AutoDiff {
       (key, grad)
     }.toMap
 
-    (evaluated, resMap)
+    resMap
   }
 }
