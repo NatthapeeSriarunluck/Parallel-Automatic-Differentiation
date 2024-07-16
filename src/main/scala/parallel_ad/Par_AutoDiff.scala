@@ -5,6 +5,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 object Par_AutoDiff {
+  def reset(): Unit = {
+
+    PartialDerivativeOf.grads.clear()
+  }
+
   def forwardMode(
       expString: String,
       varAssn: Map[String, Double]

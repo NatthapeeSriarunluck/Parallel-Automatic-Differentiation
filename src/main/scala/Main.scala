@@ -45,6 +45,8 @@ object Main {
       val sequentialExpression = expressionString
       val parallelExpression = expressionString
 
+      SequentialAutoDiff.reset()
+      Par_AutoDiff.reset()
 
       val (tForSeq, resForSeq) = timed("Sequential Forward Mode") {
         SequentialAutoDiff.forwardMode(sequentialExpression, variableAssignments)
