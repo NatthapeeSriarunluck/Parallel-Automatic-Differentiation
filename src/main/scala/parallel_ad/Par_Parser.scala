@@ -38,6 +38,9 @@ object Par_Parser extends JavaTokenParsers {
     case varNames => varNames.map(Var).reduceLeft(Prod)
   }
 
+  def variableWithExpo: Parser[Par_Expression] = rep1("""[a-zA-Z]""".r) ~ "^" ~ floatingPointNumber ^^ {
+    case varNames ~ "^" ~ expo => Power(Var(varNames.head), Constant(expo.toFloat))
+  }
 
   def const: Parser[Par_Expression] = floatingPointNumber ~ opt(variable) ^^ {
     case numStr ~ None => Constant(numStr.toFloat)

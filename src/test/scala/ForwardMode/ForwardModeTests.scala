@@ -94,7 +94,7 @@ class ForwardModeTests extends AnyFunSuite with BeforeAndAfterEach {
     List(2.0, 3.0),
     Map("x" -> 10.0, "y" -> 4.0)
   )
-  
+
   testAutoDiffs(
     "arcsin(x) at x = 0.5",
     "arcsin(x)",
@@ -143,5 +143,4 @@ class ForwardModeTests extends AnyFunSuite with BeforeAndAfterEach {
     Map("x" -> (-1 / (Math.sin(1.0) * Math.sin(1.0))))
   )
 
-  
 }
