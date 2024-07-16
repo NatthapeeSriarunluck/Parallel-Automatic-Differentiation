@@ -17,6 +17,15 @@ object Process {
     case Sin(e)                => "sin(" + stringify(e) + ")"
     case Cos(e)                => "cos(" + stringify(e) + ")"
     case Tan(e)                => "tan(" + stringify(e) + ")"
+    case Sec(e)                => "sec(" + stringify(e) + ")"
+    case Csc(e)                => "csc(" + stringify(e) + ")"
+    case Cot(e)                => "cot(" + stringify(e) + ")"
+    case ArcSin(e)             => "arcsin(" + stringify(e) + ")"
+    case ArcCos(e)             => "arccos(" + stringify(e) + ")"
+    case ArcTan(e)             => "arctan(" + stringify(e) + ")"
+    case ArcSec(e)             => "arcsec(" + stringify(e) + ")"
+    case ArcCsc(e)             => "arccsc(" + stringify(e) + ")"
+    case ArcCot(e)             => "arccot(" + stringify(e) + ")"
     case Ln(e)                 => "ln(" + stringify(e) + ")"
   }
 
@@ -35,6 +44,15 @@ object Process {
     case Sin(e)        => Math.sin(eval(e, varAssn))
     case Cos(e)        => Math.cos(eval(e, varAssn))
     case Tan(e)        => Math.tan(eval(e, varAssn))
+    case Sec(e)        => 1 / Math.cos(eval(e, varAssn))
+    case Csc(e)        => 1 / Math.sin(eval(e, varAssn))
+    case Cot(e)        => 1 / Math.tan(eval(e, varAssn))
+    case ArcSin(e)     => Math.asin(eval(e, varAssn))
+    case ArcCos(e)     => Math.acos(eval(e, varAssn))
+    case ArcTan(e)     => Math.atan(eval(e, varAssn))
+    case ArcSec(e)     => Math.acos(1 / eval(e, varAssn))
+    case ArcCsc(e)     => Math.asin(1 / eval(e, varAssn))
+    case ArcCot(e)     => Math.atan(1 / eval(e, varAssn))
     case Ln(e)         => Math.log(eval(e, varAssn))
   }
   // forms a new expression that simplifies the given expression e: Expression
