@@ -46,10 +46,14 @@ class ParserTests extends AnyFunSuite {
     "x^3y^4",
     "Prod(Power(Var(x),Constant(3.0)),Power(Var(y),Constant(4.0)))"
   )
-  testParsers("arcSin expression", "arcsin(x)", "ArcSin(Var(x))")
-  testParsers("arcCos expression", "arccos(x)", "ArcCos(Var(x))")
-  testParsers("arcTan expression", "arctan(x)", "ArcTan(Var(x))")
   testParsers("sec expression", "sec(x)", "Sec(Var(x))")
   testParsers("csc expression", "csc(x)", "Csc(Var(x))")
   testParsers("cot expression", "cot(x)", "Cot(Var(x))")
+  testParsers("arcSin expression", "arcsin(x)", "ArcSin(Var(x))")
+  testParsers("arcCos expression", "arccos(x)", "ArcCos(Var(x))")
+  testParsers("arcTan expression", "arctan(x)", "ArcTan(Var(x))")
+  testParsers("arcSec expression", "arcsec(x)", "ArcSec(Var(x))")
+  testParsers("arcCsc expression", "arccsc(x)", "ArcCsc(Var(x))")
+  testParsers("arcCot expression", "arccot(x)", "ArcCot(Var(x))")
+
 }
