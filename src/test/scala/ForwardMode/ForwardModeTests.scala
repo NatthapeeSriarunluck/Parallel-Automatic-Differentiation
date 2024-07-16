@@ -94,4 +94,54 @@ class ForwardModeTests extends AnyFunSuite with BeforeAndAfterEach {
     List(2.0, 3.0),
     Map("x" -> 10.0, "y" -> 4.0)
   )
+  
+  testAutoDiffs(
+    "arcsin(x) at x = 0.5",
+    "arcsin(x)",
+    List("x"),
+    List(0.5),
+    Map("x" -> (1 / Math.sqrt(1 - 0.5 * 0.5)))
+  )
+
+  testAutoDiffs(
+    "arccos(x) at x = 0.5",
+    "arccos(x)",
+    List("x"),
+    List(0.5),
+    Map("x" -> (-1 / Math.sqrt(1 - 0.5 * 0.5)))
+  )
+
+  testAutoDiffs(
+    "arctan(x) at x = 1",
+    "arctan(x)",
+    List("x"),
+    List(1.0),
+    Map("x" -> (1 / (1 + 1.0 * 1.0)))
+  )
+
+  testAutoDiffs(
+    "sec(x) at x = 0",
+    "sec(x)",
+    List("x"),
+    List(0.0),
+    Map("x" -> (Math.sin(0.0) / (Math.cos(0.0) * Math.cos(0.0))))
+  )
+
+  testAutoDiffs(
+    "cosec(x) at x = 1",
+    "cosec(x)",
+    List("x"),
+    List(1.0),
+    Map("x" -> (-Math.cos(1.0) / (Math.sin(1.0) * Math.sin(1.0))))
+  )
+
+  testAutoDiffs(
+    "cot(x) at x = 1",
+    "cot(x)",
+    List("x"),
+    List(1.0),
+    Map("x" -> (-1 / (Math.sin(1.0) * Math.sin(1.0))))
+  )
+
+  
 }
