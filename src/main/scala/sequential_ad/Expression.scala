@@ -227,41 +227,43 @@ case class Sec(e: Expression) extends Expression {
   override def toString: String = s"Sec(${e.toString})"
 
   override def forward(
-      varAssn: Map[String, Double],
-      variable: String
-  ): ValueAndPartial = {
+                        varAssn: Map[String, Double],
+                        variable: String
+                      ): ValueAndPartial = {
     val vp = e.forward(varAssn, variable)
     val value = 1 / Math.cos(vp.value)
-    val partial = vp.partial * Math.tan(vp.value)
+    val partial = vp.partial * value * Math.tan(vp.value)  // Corrected here
     ValueAndPartial(value, partial)
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
     val eValue = Process.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
-    e.backward(seed * Math.tan(eValue), varAssn)
+    e.backward(seed * 1 / Math.cos(eValue) * Math.tan(eValue), varAssn) // Corrected here
   }
 }
+
 
 case class Csc(e: Expression) extends Expression {
   override def toString: String = s"Csc(${e.toString})"
 
   override def forward(
-      varAssn: Map[String, Double],
-      variable: String
-  ): ValueAndPartial = {
+                        varAssn: Map[String, Double],
+                        variable: String
+                      ): ValueAndPartial = {
     val vp = e.forward(varAssn, variable)
     val value = 1 / Math.sin(vp.value)
-    val partial = -vp.partial * Math.tan(vp.value)
+    val partial = -vp.partial * value * 1/Math.tan(vp.value)  // Corrected here
     ValueAndPartial(value, partial)
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
     val eValue = Process.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
-    e.backward(-seed * Math.tan(eValue), varAssn)
+    e.backward(-seed * 1 / Math.sin(eValue) * 1/Math.tan(eValue), varAssn) // Corrected here
   }
 }
+
 case class Cot(e: Expression) extends Expression {
   override def toString: String = s"Cot(${e.toString})"
 
@@ -271,7 +273,7 @@ case class Cot(e: Expression) extends Expression {
   ): ValueAndPartial = {
     val vp = e.forward(varAssn, variable)
     val value = 1 / Math.tan(vp.value)
-    val partial = -vp.partial / Math.pow(Math.sin(vp.value), 2)
+    val partial = -vp.partial / Math.sin(vp.value) * vp.partial/Math.sin(vp.value)
     ValueAndPartial(value, partial)
   }
 
@@ -350,14 +352,14 @@ case class ArcSec (e: Expression) extends Expression {
   ): ValueAndPartial = {
     val vp = e.forward(varAssn, variable)
     val value = Math.acos(1 / vp.value)
-    val partial = -vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
+    val partial = vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
     ValueAndPartial(value, partial)
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
     val eValue = Process.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
-    e.backward(-seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
+    e.backward(seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
   }
 }
 
@@ -370,14 +372,14 @@ case class ArcCsc (e: Expression) extends Expression {
   ): ValueAndPartial = {
     val vp = e.forward(varAssn, variable)
     val value = Math.asin(1 / vp.value)
-    val partial = vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
+    val partial = -vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
     ValueAndPartial(value, partial)
   }
 
   override def backward(seed: Double, varAssn: Map[String, Double]): Unit = {
     val eValue = Process.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
-    e.backward(seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
+    e.backward(-seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
   }
 }
 

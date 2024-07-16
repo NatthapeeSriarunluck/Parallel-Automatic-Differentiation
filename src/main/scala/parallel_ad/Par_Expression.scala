@@ -57,18 +57,14 @@ case class Constant(n: Double) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    Future {
-      ValueAndPartial(n, 0)
-    }
+  ): Future[ValueAndPartial] = Future {
+    ValueAndPartial(n, 0)
   }
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
-  ): Future[Unit] = {
-    Future.successful(())
-  }
+  ): Future[Unit] = Future.successful(())
 }
 
 case class Var(name: String) extends Par_Expression {
@@ -77,33 +73,28 @@ case class Var(name: String) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    Future {
-      val value = varAssn.getOrElse(name, 0.0)
-      ValueAndPartial(value, if (name == variable) 1 else 0)
-    }
+  ): Future[ValueAndPartial] = Future {
+    val value = varAssn.getOrElse(name, 0.0)
+    ValueAndPartial(value, if (name == variable) 1 else 0)
   }
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
-  ): Future[Unit] = {
-    Future {
-      PartialDerivativeOf.safeUpdateGrad(name, seed)
-    }
+  ): Future[Unit] = Future {
+    PartialDerivativeOf.safeUpdateGrad(name, seed)
   }
 }
+
 case class Expo(e: Par_Expression) extends Par_Expression {
   override def toString: String = s"Expo(${e.toString})"
 
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.exp(vp.value), Math.exp(vp.value) * vp.partial)
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(Math.exp(vp.value), Math.exp(vp.value) * vp.partial)
 
   override def backward(
       seed: Double,
@@ -120,22 +111,18 @@ case class Sum(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e1.forward(varAssn, variable).flatMap { vp1 =>
-      e2.forward(varAssn, variable).map { vp2 =>
-        ValueAndPartial(vp1.value + vp2.value, vp1.partial + vp2.partial)
-      }
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp1 <- e1.forward(varAssn, variable)
+    vp2 <- e2.forward(varAssn, variable)
+  } yield ValueAndPartial(vp1.value + vp2.value, vp1.partial + vp2.partial)
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
-  ): Future[Unit] = {
-    e1.backward(seed, varAssn).flatMap { _ =>
-      e2.backward(seed, varAssn)
-    }
-  }
+  ): Future[Unit] = for {
+    _ <- e1.backward(seed, varAssn)
+    _ <- e2.backward(seed, varAssn)
+  } yield ()
 }
 
 case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
@@ -144,16 +131,13 @@ case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e1.forward(varAssn, variable).flatMap { vp1 =>
-      e2.forward(varAssn, variable).map { vp2 =>
-        ValueAndPartial(
-          vp1.value * vp2.value,
-          vp1.value * vp2.partial + vp1.partial * vp2.value
-        )
-      }
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp1 <- e1.forward(varAssn, variable)
+    vp2 <- e2.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    vp1.value * vp2.value,
+    vp1.value * vp2.partial + vp1.partial * vp2.value
+  )
 
   override def backward(
       seed: Double,
@@ -165,9 +149,10 @@ case class Prod(e1: Par_Expression, e2: Par_Expression) extends Par_Expression {
     val grad1 = seed * e2Value
     val grad2 = seed * e1Value
 
-    e1.backward(grad1, varAssn).flatMap { _ =>
-      e2.backward(grad2, varAssn)
-    }
+    for {
+      _ <- e1.backward(grad1, varAssn)
+      _ <- e2.backward(grad2, varAssn)
+    } yield ()
   }
 }
 
@@ -178,17 +163,14 @@ case class Power(e1: Par_Expression, e2: Par_Expression)
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e1.forward(varAssn, variable).flatMap { vp1 =>
-      e2.forward(varAssn, variable).map { vp2 =>
-        ValueAndPartial(
-          Math.pow(vp1.value, vp2.value),
-          Math.pow(vp1.value, vp2.value - 1) * vp2.value * vp1.partial +
-            Math.pow(vp1.value, vp2.value) * Math.log(vp1.value) * vp2.partial
-        )
-      }
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp1 <- e1.forward(varAssn, variable)
+    vp2 <- e2.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    Math.pow(vp1.value, vp2.value),
+    Math.pow(vp1.value, vp2.value - 1) * vp2.value * vp1.partial +
+      Math.pow(vp1.value, vp2.value) * Math.log(vp1.value) * vp2.partial
+  )
 
   override def backward(
       seed: Double,
@@ -200,9 +182,10 @@ case class Power(e1: Par_Expression, e2: Par_Expression)
     val grad1 = seed * e2Value * Math.pow(e1Value, e2Value - 1)
     val grad2 = seed * Math.pow(e1Value, e2Value) * Math.log(e1Value)
 
-    e1.backward(grad1, varAssn).flatMap { _ =>
-      e2.backward(grad2, varAssn)
-    }
+    for {
+      _ <- e1.backward(grad1, varAssn)
+      _ <- e2.backward(grad2, varAssn)
+    } yield ()
   }
 }
 
@@ -212,11 +195,9 @@ case class Sin(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.sin(vp.value), Math.cos(vp.value) * vp.partial)
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(Math.sin(vp.value), Math.cos(vp.value) * vp.partial)
 
   override def backward(
       seed: Double,
@@ -233,11 +214,9 @@ case class Cos(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.cos(vp.value), -Math.sin(vp.value) * vp.partial)
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(Math.cos(vp.value), -Math.sin(vp.value) * vp.partial)
 
   override def backward(
       seed: Double,
@@ -254,24 +233,41 @@ case class Tan(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(
-        Math.tan(vp.value),
-        Math.pow(1 / Math.cos(vp.value), 2) * vp.partial
-      )
-    }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    Math.tan(vp.value),
+    Math.pow(1 / Math.cos(vp.value), 2) * vp.partial
+  )
+
+  override def backward(
+      seed: Double = 1,
+      varAssn: Map[String, Double]
+  ): Future[Unit] = {
+    val eValue = Par_Process.eval(e, varAssn)
+    e.backward(seed * Math.pow(1 / Math.cos(eValue), 2), varAssn)
+
   }
+}
+
+case class Ln(e: Par_Expression) extends Par_Expression {
+  override def toString: String = s"Ln(${e.toString})"
+
+  override def forward(
+      varAssn: Map[String, Double],
+      variable: String
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(Math.log(vp.value), vp.partial / vp.value)
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
     val eValue = Par_Process.eval(e, varAssn)
-    e.backward(seed / Math.pow(Math.cos(eValue), 2), varAssn)
+    e.backward(seed / eValue, varAssn)
   }
 }
-
 
 case class Sec(e: Par_Expression) extends Par_Expression {
   override def toString: String = s"Sec(${e.toString})"
@@ -279,21 +275,19 @@ case class Sec(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(
-        1 / Math.cos(vp.value),
-        Math.tan(vp.value) / Math.pow(Math.cos(vp.value), 2) * vp.partial
-      )
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.cos(vp.value),
+    Math.tan(vp.value) / Math.cos(vp.value) * vp.partial
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
     val eValue = Par_Process.eval(e, varAssn)
-    e.backward(seed * Math.tan(eValue) / Math.pow(Math.cos(eValue), 2), varAssn)
+    e.backward(seed * Math.tan(eValue) / Math.cos(eValue), varAssn)
   }
 }
 
@@ -303,21 +297,19 @@ case class Csc(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(
-        1 / Math.sin(vp.value),
-        -Math.cos(vp.value) / Math.pow(Math.sin(vp.value), 2) * vp.partial
-      )
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.sin(vp.value),
+    vp.partial * 1/Math.sin(vp.value) * 1/Math.tan(vp.value)
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
     val eValue = Par_Process.eval(e, varAssn)
-    e.backward(-seed * Math.cos(eValue) / Math.pow(Math.sin(eValue), 2), varAssn)
+    e.backward(-seed * 1 / Math.sin(eValue) * 1/Math.tan(eValue), varAssn)
   }
 }
 
@@ -327,21 +319,19 @@ case class Cot(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(
-        1 / Math.tan(vp.value),
-        -1 / Math.pow(Math.sin(vp.value), 2) * vp.partial
-      )
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.tan(vp.value),
+    -Math.pow(1 / Math.sin(vp.value), 2) * vp.partial
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
     val eValue = Par_Process.eval(e, varAssn)
-    e.backward(-seed / Math.pow(Math.sin(eValue), 2), varAssn)
+    e.backward(-seed * Math.pow(1 / Math.sin(eValue), 2), varAssn)
   }
 }
 
@@ -351,11 +341,12 @@ case class ArcSin(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.asin(vp.value), vp.partial / Math.sqrt(1 - Math.pow(vp.value, 2)))
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    Math.asin(vp.value),
+    vp.partial / Math.sqrt(1 - Math.pow(vp.value, 2))
+  )
 
   override def backward(
       seed: Double,
@@ -372,11 +363,12 @@ case class ArcCos(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.acos(vp.value), -vp.partial / Math.sqrt(1 - Math.pow(vp.value, 2)))
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    Math.acos(vp.value),
+    -vp.partial / Math.sqrt(1 - Math.pow(vp.value, 2))
+  )
 
   override def backward(
       seed: Double,
@@ -393,11 +385,12 @@ case class ArcTan(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.atan(vp.value), vp.partial / (1 + Math.pow(vp.value, 2)))
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    Math.atan(vp.value),
+    vp.partial / (1 + Math.pow(vp.value, 2))
+  )
 
   override def backward(
       seed: Double,
@@ -414,15 +407,22 @@ case class ArcSec(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    ArcCos(Prod(Constant(1), e)).forward(varAssn, variable)
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.acos(vp.value),
+    vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
-    ArcCos(Prod(Constant(1), e)).backward(seed, varAssn)
+    val eValue = Par_Process.eval(e, varAssn)
+    e.backward(
+      seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)),
+      varAssn
+    )
   }
 }
 
@@ -432,15 +432,22 @@ case class ArcCsc(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    ArcSin(Prod(Constant(1), e)).forward(varAssn, variable)
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.asin(vp.value),
+    -vp.partial / (Math.abs(vp.value) * Math.sqrt(Math.pow(vp.value, 2) - 1))
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
-    ArcSin(Prod(Constant(1), e)).backward(seed, varAssn)
+    val eValue = Par_Process.eval(e, varAssn)
+    e.backward(
+      -seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)),
+      varAssn
+    )
   }
 }
 
@@ -450,36 +457,18 @@ case class ArcCot(e: Par_Expression) extends Par_Expression {
   override def forward(
       varAssn: Map[String, Double],
       variable: String
-  ): Future[ValueAndPartial] = {
-    ArcTan(Prod(Constant(1), e)).forward(varAssn, variable)
-  }
-
-  override def backward(
-      seed: Double,
-      varAssn: Map[String, Double]
-  ): Future[Unit] = {
-    ArcTan(Prod(Constant(1), e)).backward(seed, varAssn)
-  }
-}
-
-
-case class Ln(e: Par_Expression) extends Par_Expression {
-  override def toString: String = s"Ln(${e.toString})"
-
-  override def forward(
-      varAssn: Map[String, Double],
-      variable: String
-  ): Future[ValueAndPartial] = {
-    e.forward(varAssn, variable).map { vp =>
-      ValueAndPartial(Math.log(vp.value), vp.partial / vp.value)
-    }
-  }
+  ): Future[ValueAndPartial] = for {
+    vp <- e.forward(varAssn, variable)
+  } yield ValueAndPartial(
+    1 / Math.atan(vp.value),
+    -vp.partial / (1 + Math.pow(vp.value, 2))
+  )
 
   override def backward(
       seed: Double,
       varAssn: Map[String, Double]
   ): Future[Unit] = {
     val eValue = Par_Process.eval(e, varAssn)
-    e.backward(seed / eValue, varAssn)
+    e.backward(-seed / (1 + Math.pow(eValue, 2)), varAssn)
   }
 }

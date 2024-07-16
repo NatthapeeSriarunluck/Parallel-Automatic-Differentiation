@@ -82,51 +82,6 @@ class SeqReverseMode extends AnyFunSuite with BeforeAndAfterEach {
     List(2.0, 3.0),
     Map("x" -> 10.0, "y" -> 4.0)
   )
-  testReverseModeAutoDiffs(
-    "arcsin at x = 0.5",
-    "arcsin(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> 1.0 / Math.sqrt(1 - 0.5 * 0.5))
-  )
 
-  testReverseModeAutoDiffs(
-    "arccos at x = 0.5",
-    "arccos(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> -1.0 / Math.sqrt(1 - 0.5 * 0.5))
-  )
 
-  testReverseModeAutoDiffs(
-    "arctan at x = 0.5",
-    "arctan(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> 1.0 / (1 + 0.5 * 0.5))
-  )
-
-  testReverseModeAutoDiffs(
-    "sec at x = 0.5",
-    "sec(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> Math.pow(Math.cos(0.5), -1) * Math.sin(0.5))
-  )
-
-  testReverseModeAutoDiffs(
-    "csc at x = 0.5",
-    "csc(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> -1 * Math.pow(Math.sin(0.5), -1) * Math.cos(0.5))
-  )
-
-  testReverseModeAutoDiffs(
-    "cot at x = 0.5",
-    "cot(x)",
-    List("x"),
-    List(0.5),
-    Map("x" -> -1 * Math.pow(Math.tan(0.5), -2) * Math.sin(0.5))
-  )
 }

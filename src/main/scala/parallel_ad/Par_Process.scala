@@ -1,7 +1,5 @@
 package parallel_ad
 
-
-
 object Par_Process {
   // gives a "pretty-print" string form of the expression
   def stringify(e: Par_Expression): String = e match {
