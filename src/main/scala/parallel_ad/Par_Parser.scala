@@ -22,11 +22,12 @@ object Par_Parser extends JavaTokenParsers {
         case _ => throw new Exception("shouldn't get here")
       }
   }
-  def term: Parser[Par_Expression] = expo ~ ("*" ~ expo).* ^^ {
+  def term: Parser[Par_Expression] = expo ~ (("*" | "/") ~ expo).* ^^ {
     case ex ~ Nil => ex
     case ex ~ repExs =>
       repExs.foldLeft(ex) {
         case (exSoFar, "*" ~ nextEx) => Prod(exSoFar, nextEx)
+        case (exSoFar, "/" ~ nextEx) => Divide(exSoFar, nextEx)
         case _                       => throw new Exception("shouldn't get here")
       }
   }

@@ -1,3 +1,4 @@
+
 package sequential_ad
 
 import scala.util.parsing.combinator.*
@@ -24,11 +25,12 @@ object Parser extends JavaTokenParsers {
       }
   }
 
-  def term: Parser[Expression] = expo ~ ("*" ~ expo).* ^^ {
+  def term: Parser[Expression] = expo ~ (("*" | "/") ~ expo).* ^^ {
     case ex ~ Nil => ex
     case ex ~ repExs =>
       repExs.foldLeft(ex) {
         case (exSoFar, "*" ~ nextEx) => Prod(exSoFar, nextEx)
+        case (exSoFar, "/" ~ nextEx) => Divide(exSoFar, nextEx)
         case _                       => throw new Exception("shouldn't get here")
       }
   }
