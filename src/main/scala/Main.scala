@@ -14,7 +14,9 @@ object Main {
           println("Enter variable names (comma separated):")
           val variableNames = scala.io.StdIn.readLine().split(",").map(_.trim).toList
 
-          println("Enter an expression:")
+          println("Enter an expression:\n")
+          println("The program handles: +, -, *, ^, \nsin, cos, tan, sec, csc, cot, arcsin, arccos, arctan, arcsec, arccsc, arccot, ln")
+          
           val expressionString = scala.io.StdIn.readLine()
 
           println("Enter corresponding variable values (comma separated):")
