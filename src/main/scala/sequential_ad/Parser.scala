@@ -14,33 +14,34 @@ object Parser extends JavaTokenParsers {
   def op: Parser[Expression] =
     (sin | cos | tan | sec | csc | cot | arcsin | arccos | arctan | arcsec | arccsc | arccot | ln | exp | const | variable | ("(" ~> expr <~ ")"))
 
-  def expr: Parser[Expression] = term ~ (("+" | "-") ~ term).* ^^ {
+  def expr: Parser[Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
     case term ~ Nil => term
     case term ~ repTerms =>
       repTerms.foldLeft(term) {
         case (termSoFar, "+" ~ nextTerm) => Sum(termSoFar, nextTerm)
         case (termSoFar, "-" ~ nextTerm) =>
           Sum(termSoFar, Prod(Constant(-1), nextTerm))
-        case _ => throw new Exception("shouldn't get here")
       }
   }
 
-  def term: Parser[Expression] = expo ~ (("*" | "/") ~ expo).* ^^ {
-    case ex ~ Nil => ex
-    case ex ~ repExs =>
-      repExs.foldLeft(ex) {
-        case (exSoFar, "*" ~ nextEx) => Prod(exSoFar, nextEx)
-        case (exSoFar, "/" ~ nextEx) => Divide(exSoFar, nextEx)
-        case _                       => throw new Exception("shouldn't get here")
+  def term: Parser[Expression] = factor ~ rep(("*" | "/") ~ factor) ^^ {
+    case factor ~ Nil => factor
+    case factor ~ repFactors =>
+      repFactors.foldLeft(factor) {
+        case (factorSoFar, "*" ~ nextFactor) => Prod(factorSoFar, nextFactor)
+        case (factorSoFar, "/" ~ nextFactor) => Divide(factorSoFar, nextFactor)
       }
   }
 
-  def expo: Parser[Expression] = (exp ~ ("^" ~ op) | op ~ ("^" ~ op).?) ^^ {
-    case exp ~ Some("^" ~ expn)  => Power(exp, expn)
-    case op ~ None               => op
-    case base ~ Some("^" ~ expn) => Power(base, expn)
-    case _                       => throw new Exception("shouldn't get here")
+  def factor: Parser[Expression] = expo ~ rep("^" ~ expo) ^^ {
+    case expo ~ Nil => expo
+    case expo ~ repExpos =>
+      repExpos.foldLeft(expo) {
+        case (base, "^" ~ exponent) => Power(base, exponent)
+      }
   }
+
+  def expo: Parser[Expression] = exp | op
 
   def exp: Parser[Expression] = "e".r ^^ (_ => Expo(Constant(math.E)))
 

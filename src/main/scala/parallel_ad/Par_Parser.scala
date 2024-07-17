@@ -12,49 +12,54 @@ object Par_Parser extends JavaTokenParsers {
 
   def op: Parser[Par_Expression] =
     (sin | cos | tan | sec | csc | cot | arcsin | arccos | arctan | arcsec | arccsc | arccot | ln | exp | const | variable | ("(" ~> expr <~ ")"))
-  def expr: Parser[Par_Expression] = term ~ (("+" | "-") ~ term).* ^^ {
+
+  def expr: Parser[Par_Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
     case term ~ Nil => term
     case term ~ repTerms =>
       repTerms.foldLeft(term) {
         case (termSoFar, "+" ~ nextTerm) => Sum(termSoFar, nextTerm)
         case (termSoFar, "-" ~ nextTerm) =>
           Sum(termSoFar, Prod(Constant(-1), nextTerm))
-        case _ => throw new Exception("shouldn't get here")
-      }
-  }
-  def term: Parser[Par_Expression] = expo ~ (("*" | "/") ~ expo).* ^^ {
-    case ex ~ Nil => ex
-    case ex ~ repExs =>
-      repExs.foldLeft(ex) {
-        case (exSoFar, "*" ~ nextEx) => Prod(exSoFar, nextEx)
-        case (exSoFar, "/" ~ nextEx) => Divide(exSoFar, nextEx)
-        case _                       => throw new Exception("shouldn't get here")
       }
   }
 
-  def expo: Parser[Par_Expression] = op ~ ("^" ~ op).? ^^ {
-    case op ~ None               => op
-    case base ~ Some("^" ~ expn) => Power(base, expn)
-    case _                       => throw new Exception("shouldn't get here")
+  def term: Parser[Par_Expression] = factor ~ rep(("*" | "/") ~ factor) ^^ {
+    case factor ~ Nil => factor
+    case factor ~ repFactors =>
+      repFactors.foldLeft(factor) {
+        case (factorSoFar, "*" ~ nextFactor) => Prod(factorSoFar, nextFactor)
+        case (factorSoFar, "/" ~ nextFactor) => Divide(factorSoFar, nextFactor)
+      }
   }
 
-  def variable: Parser[Par_Expression] = rep1("""[a-zA-Z]""".r) ^^ {
-    case varNames if varNames.length == 1 => Var(varNames.head)
-    case varNames                         => varNames.map(Var).reduceLeft(Prod)
+  def factor: Parser[Par_Expression] = expo ~ rep("^" ~ expo) ^^ {
+    case expo ~ Nil => expo
+    case expo ~ repExpos =>
+      repExpos.foldLeft(expo) {
+        case (base, "^" ~ exponent) => Power(base, exponent)
+      }
   }
 
-  def variableWithExpo: Parser[Par_Expression] =
-    rep1("""[a-zA-Z]""".r) ~ "^" ~ floatingPointNumber ^^ {
-      case varNames ~ "^" ~ expo =>
-        Power(Var(varNames.head), Constant(expo.toFloat))
-    }
-
-  def const: Parser[Par_Expression] = floatingPointNumber ~ opt(variable) ^^ {
-    case numStr ~ None           => Constant(numStr.toFloat)
-    case numStr ~ Some(variable) => Prod(Constant(numStr.toFloat), variable)
-  }
+  def expo: Parser[Par_Expression] = exp | op
 
   def exp: Parser[Par_Expression] = "e".r ^^ (_ => Expo(Constant(math.E)))
+
+  def variable: Parser[Par_Expression] = rep1(variableWithExp) ^^ { case varExps =>
+    varExps.reduceLeft(Prod)
+  }
+
+  def variableWithExp: Parser[Par_Expression] =
+    """[a-zA-Z]""".r ~ ("^" ~> floatingPointNumber).? ^^ {
+      case varName ~ None      => Var(varName)
+      case varName ~ Some(exp) => Power(Var(varName), Constant(exp.toDouble))
+    }
+
+  def const: Parser[Par_Expression] =
+    floatingPointNumber ~ rep(variableWithExp) ^^ {
+      case numStr ~ Nil => Constant(numStr.toDouble)
+      case numStr ~ varExps =>
+        varExps.foldLeft(Constant(numStr.toDouble): Par_Expression)(Prod)
+    }
 
   def sin: Parser[Par_Expression] = ("sin(" ~> expr <~ ")") ^^ { case ex =>
     Sin(ex)
@@ -80,34 +85,28 @@ object Par_Parser extends JavaTokenParsers {
     Cot(ex)
   }
 
-  def arcsin: Parser[Par_Expression] = ("arcsin(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcSin(ex)
+  def arcsin: Parser[Par_Expression] = ("arcsin(" ~> expr <~ ")") ^^ { case ex =>
+    ArcSin(ex)
   }
 
-  def arccos: Parser[Par_Expression] = ("arccos(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcCos(ex)
+  def arccos: Parser[Par_Expression] = ("arccos(" ~> expr <~ ")") ^^ { case ex =>
+    ArcCos(ex)
   }
 
-  def arctan: Parser[Par_Expression] = ("arctan(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcTan(ex)
+  def arctan: Parser[Par_Expression] = ("arctan(" ~> expr <~ ")") ^^ { case ex =>
+    ArcTan(ex)
   }
 
-  def arcsec: Parser[Par_Expression] = ("arcsec(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcSec(ex)
+  def arcsec: Parser[Par_Expression] = ("arcsec(" ~> expr <~ ")") ^^ { case ex =>
+    ArcSec(ex)
   }
 
-  def arccsc: Parser[Par_Expression] = ("arccsc(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcCsc(ex)
+  def arccsc: Parser[Par_Expression] = ("arccsc(" ~> expr <~ ")") ^^ { case ex =>
+    ArcCsc(ex)
   }
 
-  def arccot: Parser[Par_Expression] = ("arccot(" ~> expr <~ ")") ^^ {
-    case ex =>
-      ArcCot(ex)
+  def arccot: Parser[Par_Expression] = ("arccot(" ~> expr <~ ")") ^^ { case ex =>
+    ArcCot(ex)
   }
 
   def ln: Parser[Par_Expression] = ("ln(" ~> expr <~ ")") ^^ { case ex =>
