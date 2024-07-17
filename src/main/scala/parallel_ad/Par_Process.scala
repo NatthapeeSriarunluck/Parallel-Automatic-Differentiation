@@ -11,6 +11,7 @@ object Par_Process {
     case Prod(l @ Sum(_, _), r) => "(" + stringify(l) + ") * " + stringify(r)
     case Prod(l, r @ Sum(_, _)) => stringify(l) + " * (" + stringify(r) + ")"
     case Prod(l, r)             => stringify(l) + " * " + stringify(r)
+    case Divide(e1, e2)         => stringify(e1) + " / " + stringify(e2)
     case Power(b, e)            => stringify(b) + "^" + stringify(e)
     case Sin(e)                 => "sin(" + stringify(e) + ")"
     case Cos(e)                 => "cos(" + stringify(e) + ")"
@@ -39,6 +40,7 @@ object Par_Process {
     case Sum(e1, e2)   => eval(e1, varAssn) + eval(e2, varAssn)
     case Prod(e1, e2)  => eval(e1, varAssn) * eval(e2, varAssn)
     case Power(e1, e2) => Math.pow(eval(e1, varAssn), eval(e2, varAssn))
+    case Divide(e1, e2) => eval(e1, varAssn) / eval(e2, varAssn)
     case Sin(e)        => Math.sin(eval(e, varAssn))
     case Cos(e)        => Math.cos(eval(e, varAssn))
     case Tan(e)        => Math.tan(eval(e, varAssn))
