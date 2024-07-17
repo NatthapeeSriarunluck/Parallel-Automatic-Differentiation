@@ -1,10 +1,10 @@
-package parallel_ad
+package parallel.ad
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-object Par_AutoDiff {
+object ParAutoDiff {
   def reset(): Unit = {
 
     PartialDerivativeOf.grads.clear()
@@ -15,7 +15,7 @@ object Par_AutoDiff {
       varAssn: Map[String, Double]
   ): Map[String, Double] = {
     val expr =
-      Par_Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+      ParParser(expString).getOrElse(throw new Exception("Invalid expression"))
     val futures = varAssn.keys.map { variable =>
       expr.forward(varAssn, variable).map(vp => (variable, vp.partial))
     }
@@ -27,7 +27,7 @@ object Par_AutoDiff {
       varAssn: Map[String, Double]
   ): Map[String, Double] = {
     val expr =
-      Par_Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+      ParParser(expString).getOrElse(throw new Exception("Invalid expression"))
     val backwardFuture = expr.backward(1, varAssn)
     val resultFut = backwardFuture.map { _ =>
       varAssn.keys.map { key =>

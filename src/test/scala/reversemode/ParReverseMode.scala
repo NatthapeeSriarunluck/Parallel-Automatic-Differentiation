@@ -1,9 +1,10 @@
-package ReverseMode
+package reversemode
+
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funsuite.AnyFunSuite
-import sequential_ad.{AutoDiff, PartialDerivativeOf, ValueOf}
+import parallel.ad.{ParAutoDiff, PartialDerivativeOf, ValueOf}
 
-class SeqReverseMode extends AnyFunSuite with BeforeAndAfterEach {
+class ParReverseMode extends AnyFunSuite with BeforeAndAfterEach {
   override def beforeEach(): Unit = {
     PartialDerivativeOf.grads.clear()
     ValueOf.values.clear()
@@ -18,8 +19,8 @@ class SeqReverseMode extends AnyFunSuite with BeforeAndAfterEach {
       expected: Map[String, Double]
   ): Unit = {
     val varAssn = varNames.zip(varValues).toMap
-    test(s"$testName (Seq_AutoDiff)") {
-      val result = AutoDiff.reverseMode(expression, varAssn)
+    test(s"$testName (Par_AutoDiff)") {
+      val result = ParAutoDiff.reverseMode(expression, varAssn)
       expected.foreach { case (variable, value) =>
         assert(result(variable) == value)
       }

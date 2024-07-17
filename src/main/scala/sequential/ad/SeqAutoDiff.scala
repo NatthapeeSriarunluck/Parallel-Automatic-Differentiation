@@ -1,6 +1,6 @@
-package sequential_ad
+package sequential.ad
 
-object AutoDiff {
+object SeqAutoDiff {
 
   def reset(): Unit = {
     PartialDerivativeOf.grads.clear()
@@ -10,7 +10,7 @@ object AutoDiff {
       varAssn: Map[String, Double]
   ): Map[String, Double] = {
     val expr =
-      Parser(expString).getOrElse(throw new Exception("Invalid expression"))
+      SeqParser(expString).getOrElse(throw new Exception("Invalid expression"))
     varAssn.keys.map { variable =>
       val vp = expr.forward(varAssn, variable)
       (variable, vp.partial)
@@ -23,8 +23,8 @@ object AutoDiff {
   ): Map[String, Double] = {
 
     val expr =
-      Parser(expString).getOrElse(throw new Exception("Invalid expression"))
-    val evaluated = Process.eval(expr, varAssn)
+      SeqParser(expString).getOrElse(throw new Exception("Invalid expression"))
+    val evaluated = SeqProcess.eval(expr, varAssn)
     val reverseResult: Unit = expr.reverse(1, varAssn)
 
     val resMap = varAssn.keys.map { key =>

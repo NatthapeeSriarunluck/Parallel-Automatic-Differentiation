@@ -1,4 +1,4 @@
-package parallel_ad
+package parallel.ad
 
 import scala.util.parsing.combinator.*
 
@@ -8,12 +8,12 @@ import scala.util.parsing.combinator.*
  *    val e = solver.Parser("x^2 + 3*x - 1")
  */
 
-object Par_Parser extends JavaTokenParsers {
+object ParParser extends JavaTokenParsers {
 
-  def op: Parser[Par_Expression] =
+  def op: Parser[ParExpression] =
     (sin | cos | tan | sec | csc | cot | arcsin | arccos | arctan | arcsec | arccsc | arccot | ln | exp | const | variable | ("(" ~> expr <~ ")"))
 
-  def expr: Parser[Par_Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
+  def expr: Parser[ParExpression] = term ~ rep(("+" | "-") ~ term) ^^ {
     case term ~ Nil => term
     case term ~ repTerms =>
       repTerms.foldLeft(term) {
@@ -23,7 +23,7 @@ object Par_Parser extends JavaTokenParsers {
       }
   }
 
-  def term: Parser[Par_Expression] = factor ~ rep(("*" | "/") ~ factor) ^^ {
+  def term: Parser[ParExpression] = factor ~ rep(("*" | "/") ~ factor) ^^ {
     case factor ~ Nil => factor
     case factor ~ repFactors =>
       repFactors.foldLeft(factor) {
@@ -32,7 +32,7 @@ object Par_Parser extends JavaTokenParsers {
       }
   }
 
-  def factor: Parser[Par_Expression] = expo ~ rep("^" ~ expo) ^^ {
+  def factor: Parser[ParExpression] = expo ~ rep("^" ~ expo) ^^ {
     case expo ~ Nil => expo
     case expo ~ repExpos =>
       repExpos.foldLeft(expo) {
@@ -40,80 +40,80 @@ object Par_Parser extends JavaTokenParsers {
       }
   }
 
-  def expo: Parser[Par_Expression] = exp | op
+  def expo: Parser[ParExpression] = exp | op
 
-  def exp: Parser[Par_Expression] = "e".r ^^ (_ => Expo(Constant(math.E)))
+  def exp: Parser[ParExpression] = "e".r ^^ (_ => Expo(Constant(math.E)))
 
-  def variable: Parser[Par_Expression] = rep1(variableWithExp) ^^ { case varExps =>
+  def variable: Parser[ParExpression] = rep1(variableWithExp) ^^ { case varExps =>
     varExps.reduceLeft(Prod)
   }
 
-  def variableWithExp: Parser[Par_Expression] =
+  def variableWithExp: Parser[ParExpression] =
     """[a-zA-Z]""".r ~ ("^" ~> floatingPointNumber).? ^^ {
       case varName ~ None      => Var(varName)
       case varName ~ Some(exp) => Power(Var(varName), Constant(exp.toDouble))
     }
 
-  def const: Parser[Par_Expression] =
+  def const: Parser[ParExpression] =
     floatingPointNumber ~ rep(variableWithExp) ^^ {
       case numStr ~ Nil => Constant(numStr.toDouble)
       case numStr ~ varExps =>
-        varExps.foldLeft(Constant(numStr.toDouble): Par_Expression)(Prod)
+        varExps.foldLeft(Constant(numStr.toDouble): ParExpression)(Prod)
     }
 
-  def sin: Parser[Par_Expression] = ("sin(" ~> expr <~ ")") ^^ { case ex =>
+  def sin: Parser[ParExpression] = ("sin(" ~> expr <~ ")") ^^ { case ex =>
     Sin(ex)
   }
 
-  def cos: Parser[Par_Expression] = ("cos(" ~> expr <~ ")") ^^ { case ex =>
+  def cos: Parser[ParExpression] = ("cos(" ~> expr <~ ")") ^^ { case ex =>
     Cos(ex)
   }
 
-  def tan: Parser[Par_Expression] = ("tan(" ~> expr <~ ")") ^^ { case ex =>
+  def tan: Parser[ParExpression] = ("tan(" ~> expr <~ ")") ^^ { case ex =>
     Tan(ex)
   }
 
-  def sec: Parser[Par_Expression] = ("sec(" ~> expr <~ ")") ^^ { case ex =>
+  def sec: Parser[ParExpression] = ("sec(" ~> expr <~ ")") ^^ { case ex =>
     Sec(ex)
   }
 
-  def csc: Parser[Par_Expression] = ("csc(" ~> expr <~ ")") ^^ { case ex =>
+  def csc: Parser[ParExpression] = ("csc(" ~> expr <~ ")") ^^ { case ex =>
     Csc(ex)
   }
 
-  def cot: Parser[Par_Expression] = ("cot(" ~> expr <~ ")") ^^ { case ex =>
+  def cot: Parser[ParExpression] = ("cot(" ~> expr <~ ")") ^^ { case ex =>
     Cot(ex)
   }
 
-  def arcsin: Parser[Par_Expression] = ("arcsin(" ~> expr <~ ")") ^^ { case ex =>
+  def arcsin: Parser[ParExpression] = ("arcsin(" ~> expr <~ ")") ^^ { case ex =>
     ArcSin(ex)
   }
 
-  def arccos: Parser[Par_Expression] = ("arccos(" ~> expr <~ ")") ^^ { case ex =>
+  def arccos: Parser[ParExpression] = ("arccos(" ~> expr <~ ")") ^^ { case ex =>
     ArcCos(ex)
   }
 
-  def arctan: Parser[Par_Expression] = ("arctan(" ~> expr <~ ")") ^^ { case ex =>
+  def arctan: Parser[ParExpression] = ("arctan(" ~> expr <~ ")") ^^ { case ex =>
     ArcTan(ex)
   }
 
-  def arcsec: Parser[Par_Expression] = ("arcsec(" ~> expr <~ ")") ^^ { case ex =>
+  def arcsec: Parser[ParExpression] = ("arcsec(" ~> expr <~ ")") ^^ { case ex =>
     ArcSec(ex)
   }
 
-  def arccsc: Parser[Par_Expression] = ("arccsc(" ~> expr <~ ")") ^^ { case ex =>
+  def arccsc: Parser[ParExpression] = ("arccsc(" ~> expr <~ ")") ^^ { case ex =>
     ArcCsc(ex)
   }
 
-  def arccot: Parser[Par_Expression] = ("arccot(" ~> expr <~ ")") ^^ { case ex =>
+  def arccot: Parser[ParExpression] = ("arccot(" ~> expr <~ ")") ^^ { case ex =>
     ArcCot(ex)
   }
 
-  def ln: Parser[Par_Expression] = ("ln(" ~> expr <~ ")") ^^ { case ex =>
+  def ln: Parser[ParExpression] = ("ln(" ~> expr <~ ")") ^^ { case ex =>
     Ln(ex)
   }
 
-  def apply(input: String): Option[Par_Expression] =
+  def apply(input: String): Option[ParExpression] =
     parseAll(expr, input) match {
       case Success(result, _) => Some(result)
       case _                  => None

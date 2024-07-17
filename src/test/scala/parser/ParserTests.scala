@@ -1,8 +1,8 @@
-package parser_test
+package parser
 
 import org.scalatest.funsuite.AnyFunSuite
-import parallel_ad.Par_Parser
-import sequential_ad.Parser
+import parallel.ad.ParParser
+import sequential.ad.SeqParser
 
 class ParserTests extends AnyFunSuite {
 
@@ -13,12 +13,12 @@ class ParserTests extends AnyFunSuite {
   ): Unit = {
     test(s"$testName (sequential)") {
       val exp =
-        Parser(expression).getOrElse(throw new Exception("Invalid expression"))
+        SeqParser(expression).getOrElse(throw new Exception("Invalid expression"))
       assert(exp.toString == expected)
     }
 
     test(s"$testName (parallel)") {
-      val exp = Par_Parser(expression).getOrElse(
+      val exp = ParParser(expression).getOrElse(
         throw new Exception("Invalid expression")
       )
       assert(exp.toString == expected)

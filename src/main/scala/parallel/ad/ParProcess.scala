@@ -1,10 +1,8 @@
-package sequential_ad
+package parallel.ad
 
-import sequential_ad.*
-
-object Process {
+object ParProcess {
   // gives a "pretty-print" string form of the expression
-  def stringify(e: Expression): String = e match {
+  def stringify(e: ParExpression): String = e match {
     case Constant(c) => c.toString
     case Var(name)   => name
     case Sum(l, r)   => stringify(l) + " + " + stringify(r)
@@ -15,9 +13,9 @@ object Process {
     case Prod(l, r)             => stringify(l) + " * " + stringify(r)
     case Divide(e1, e2)         => stringify(e1) + " / " + stringify(e2)
     case Power(b, e)            => stringify(b) + "^" + stringify(e)
-    case Sin(e)                => "sin(" + stringify(e) + ")"
-    case Cos(e)                => "cos(" + stringify(e) + ")"
-    case Tan(e)                => "tan(" + stringify(e) + ")"
+    case Sin(e)                 => "sin(" + stringify(e) + ")"
+    case Cos(e)                 => "cos(" + stringify(e) + ")"
+    case Tan(e)                 => "tan(" + stringify(e) + ")"
     case Sec(e)                => "sec(" + stringify(e) + ")"
     case Csc(e)                => "csc(" + stringify(e) + ")"
     case Cot(e)                => "cot(" + stringify(e) + ")"
@@ -27,16 +25,16 @@ object Process {
     case ArcSec(e)             => "arcsec(" + stringify(e) + ")"
     case ArcCsc(e)             => "arccsc(" + stringify(e) + ")"
     case ArcCot(e)             => "arccot(" + stringify(e) + ")"
-    case Ln(e)                 => "ln(" + stringify(e) + ")"
+    case Ln(e)                  => "ln(" + stringify(e) + ")"
   }
 
-  // evaluates a given expression e: Expression using
+  // evaluates a given expression e: Par_Expression using
   // the variable settings in varAssn: Map[String, Double],
   // returning the evaluation result as a Double.
 
   // Example: eval(e, Map("x" -> 4.0)) evaluates the expression
   // with the variable "x" set to 4.0.
-  def eval(e: Expression, varAssn: Map[String, Double]): Double = e match {
+  def eval(e: ParExpression, varAssn: Map[String, Double]): Double = e match {
     case Constant(n)   => n
     case Var(name)     => varAssn(name)
     case Sum(e1, e2)   => eval(e1, varAssn) + eval(e2, varAssn)
@@ -55,14 +53,16 @@ object Process {
     case ArcSec(e)     => Math.acos(1 / eval(e, varAssn))
     case ArcCsc(e)     => Math.asin(1 / eval(e, varAssn))
     case ArcCot(e)     => Math.atan(1 / eval(e, varAssn))
+
     case Ln(e)         => Math.log(eval(e, varAssn))
   }
-  // forms a new expression that simplifies the given expression e: Expression
+
+  // forms a new expression that simplifies the given expression e: Par_Expression
   // the goal of this function is produce an expression that is easier to
   // evaluate and/or differentiate.  If there's a canonical form you'd like to
   // follow, use this function to put an expression in this form.
   // you may leave this function blank if can't find any use.
   //
-  def simplify(e: Expression): Expression = ???
+  def simplify(e: ParExpression): ParExpression = ???
 
 }

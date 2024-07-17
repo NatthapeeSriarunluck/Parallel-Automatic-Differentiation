@@ -1,6 +1,6 @@
-package sequential_ad
+package sequential.ad
 
-sealed trait Expression {
+sealed trait SeqExpression {
   def forward(varAssn: Map[String, Double], variable: String): ValueAndPartial
   def reverse(seed: Double, varAssn: Map[String, Double]): Unit
 
@@ -42,7 +42,7 @@ case class ValueAndPartial(value: Double, partial: Double) {
   def toList: List[Double] = List(value, partial)
 }
 
-case class Constant(n: Double) extends Expression {
+case class Constant(n: Double) extends SeqExpression {
   override def toString: String = s"Constant($n)"
 
   override def forward(
@@ -54,7 +54,7 @@ case class Constant(n: Double) extends Expression {
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {}
 }
 
-case class Var(name: String) extends Expression {
+case class Var(name: String) extends SeqExpression {
   var grad: Double = 0
   override def toString: String = s"Var($name)"
 
@@ -71,7 +71,7 @@ case class Var(name: String) extends Expression {
   }
 }
 
-case class Expo(e: Expression) extends Expression {
+case class Expo(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Expo(${e.toString})"
 
   override def forward(
@@ -86,7 +86,7 @@ case class Expo(e: Expression) extends Expression {
   }
 }
 
-case class Sum(e1: Expression, e2: Expression) extends Expression {
+case class Sum(e1: SeqExpression, e2: SeqExpression) extends SeqExpression {
   override def toString: String = s"Sum(${e1.toString},${e2.toString})"
 
   override def forward(
@@ -99,8 +99,8 @@ case class Sum(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val e1Value = Process.eval(e1, varAssn)
-    val e2Value = Process.eval(e2, varAssn)
+    val e1Value = SeqProcess.eval(e1, varAssn)
+    val e2Value = SeqProcess.eval(e2, varAssn)
     ValueOf.UpdateValue(e1.toString, e1Value)
     ValueOf.UpdateValue(e2.toString, e2Value)
     e1.reverse(seed, varAssn)
@@ -108,7 +108,7 @@ case class Sum(e1: Expression, e2: Expression) extends Expression {
   }
 }
 
-case class Prod(e1: Expression, e2: Expression) extends Expression {
+case class Prod(e1: SeqExpression, e2: SeqExpression) extends SeqExpression {
   override def toString: String = s"Prod(${e1.toString},${e2.toString})"
 
   override def forward(
@@ -124,16 +124,16 @@ case class Prod(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val e1Value = Process.eval(e1, varAssn)
+    val e1Value = SeqProcess.eval(e1, varAssn)
     ValueOf.UpdateValue(e1.toString, e1Value)
-    val e2Value = Process.eval(e2, varAssn)
+    val e2Value = SeqProcess.eval(e2, varAssn)
     ValueOf.UpdateValue(e2.toString, e2Value)
     e1.reverse(seed * e2Value, varAssn)
     e2.reverse(seed * e1Value, varAssn)
   }
 }
 
-case class Divide(e1: Expression, e2: Expression) extends Expression {
+case class Divide(e1: SeqExpression, e2: SeqExpression) extends SeqExpression {
   override def toString: String = s"Divide(${e1.toString},${e2.toString})"
 
   override def forward(
@@ -149,16 +149,16 @@ case class Divide(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val e1Value = Process.eval(e1, varAssn)
+    val e1Value = SeqProcess.eval(e1, varAssn)
     ValueOf.UpdateValue(e1.toString, e1Value)
-    val e2Value = Process.eval(e2, varAssn)
+    val e2Value = SeqProcess.eval(e2, varAssn)
     ValueOf.UpdateValue(e2.toString, e2Value)
     e1.reverse(seed / e2Value, varAssn)
     e2.reverse(-seed * e1Value / Math.pow(e2Value, 2), varAssn)
   }
 }
 
-case class Power(e1: Expression, e2: Expression) extends Expression {
+case class Power(e1: SeqExpression, e2: SeqExpression) extends SeqExpression {
   override def toString: String = s"Power(${e1.toString},${e2.toString})"
 
   override def forward(
@@ -175,8 +175,8 @@ case class Power(e1: Expression, e2: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val e1Value = Process.eval(e1, varAssn)
-    val e2Value = Process.eval(e2, varAssn)
+    val e1Value = SeqProcess.eval(e1, varAssn)
+    val e2Value = SeqProcess.eval(e2, varAssn)
     ValueOf.UpdateValue(e1.toString, e1Value)
     ValueOf.UpdateValue(e2.toString, e2Value)
     e1.reverse(
@@ -191,7 +191,7 @@ case class Power(e1: Expression, e2: Expression) extends Expression {
   }
 }
 
-case class Sin(e: Expression) extends Expression {
+case class Sin(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Sin(${e.toString})"
 
   override def forward(
@@ -205,14 +205,14 @@ case class Sin(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed * Math.cos(eValue), varAssn)
 
   }
 }
 
-case class Cos(e: Expression) extends Expression {
+case class Cos(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Cos(${e.toString})"
 
   override def forward(
@@ -226,14 +226,14 @@ case class Cos(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed * -Math.sin(eValue), varAssn)
   }
 
 }
 
-case class Tan(e: Expression) extends Expression {
+case class Tan(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Tan(${e.toString})"
 
   override def forward(
@@ -247,14 +247,14 @@ case class Tan(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed / Math.pow(Math.cos(eValue), 2), varAssn)
   }
 
 }
 
-case class Sec(e: Expression) extends Expression {
+case class Sec(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Sec(${e.toString})"
 
   override def forward(
@@ -268,13 +268,13 @@ case class Sec(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed * 1 / Math.cos(eValue) * Math.tan(eValue), varAssn) // Corrected here
   }
 }
 
-case class Csc(e: Expression) extends Expression {
+case class Csc(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Csc(${e.toString})"
 
   override def forward(
@@ -288,13 +288,13 @@ case class Csc(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(-seed * 1 / Math.sin(eValue) * 1 / Math.tan(eValue), varAssn) // Corrected here
   }
 }
 
-case class Cot(e: Expression) extends Expression {
+case class Cot(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Cot(${e.toString})"
 
   override def forward(
@@ -308,13 +308,13 @@ case class Cot(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(-seed / Math.pow(Math.sin(eValue), 2), varAssn)
   }
 }
 
-case class ArcSin(e: Expression) extends Expression {
+case class ArcSin(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcSin(${e.toString})"
 
   override def forward(
@@ -328,13 +328,13 @@ case class ArcSin(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed / Math.sqrt(1 - Math.pow(eValue, 2)), varAssn)
   }
 }
 
-case class ArcCos(e: Expression) extends Expression {
+case class ArcCos(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcCos(${e.toString})"
 
   override def forward(
@@ -348,13 +348,13 @@ case class ArcCos(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(-seed / Math.sqrt(1 - Math.pow(eValue, 2)), varAssn)
   }
 }
 
-case class ArcTan(e: Expression) extends Expression {
+case class ArcTan(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcTan(${e.toString})"
 
   override def forward(
@@ -368,13 +368,13 @@ case class ArcTan(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed / (1 + Math.pow(eValue, 2)), varAssn)
   }
 }
 
-case class ArcSec(e: Expression) extends Expression {
+case class ArcSec(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcSec(${e.toString})"
 
   override def forward(
@@ -388,13 +388,13 @@ case class ArcSec(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
   }
 }
 
-case class ArcCsc(e: Expression) extends Expression {
+case class ArcCsc(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcCsc(${e.toString})"
 
   override def forward(
@@ -408,13 +408,13 @@ case class ArcCsc(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(-seed / (Math.abs(eValue) * Math.sqrt(Math.pow(eValue, 2) - 1)), varAssn)
   }
 }
 
-case class ArcCot(e: Expression) extends Expression {
+case class ArcCot(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"ArcCot(${e.toString})"
 
   override def forward(
@@ -428,13 +428,13 @@ case class ArcCot(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(-seed / (1 + Math.pow(eValue, 2)), varAssn)
   }
 }
 
-case class Ln(e: Expression) extends Expression {
+case class Ln(e: SeqExpression) extends SeqExpression {
   override def toString: String = s"Ln(${e.toString})"
 
   override def forward(
@@ -448,7 +448,7 @@ case class Ln(e: Expression) extends Expression {
   }
 
   override def reverse(seed: Double, varAssn: Map[String, Double]): Unit = {
-    val eValue = Process.eval(e, varAssn)
+    val eValue = SeqProcess.eval(e, varAssn)
     ValueOf.UpdateValue(e.toString, eValue)
     e.reverse(seed / eValue, varAssn)
   }

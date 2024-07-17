@@ -1,12 +1,12 @@
-import parallel_ad.Par_AutoDiff
-import sequential_ad.AutoDiff as SequentialAutoDiff
+import parallel.ad.ParAutoDiff
+import sequential.ad.SeqAutoDiff as SequentialAutoDiff
 
 import scala.util.Random
 
 object Main {
   def main(args: Array[String]): Unit = {
     while (true) {
-      println("Press 1 for manual input, 2 to go crazy, 3 to quit")
+      println("Press 1 for manual input, 2 to test parallelism, 3 to quit")
       val choice = scala.io.StdIn.readInt()
 
       val (variableNames, expressionString, variableAssignments) = choice match {
@@ -48,7 +48,7 @@ object Main {
       val parallelExpression = expressionString
 
       SequentialAutoDiff.reset()
-      Par_AutoDiff.reset()
+      ParAutoDiff.reset()
 
       val (tForSeq, resForSeq) = timed("Sequential Forward Mode") {
         SequentialAutoDiff.forwardMode(sequentialExpression, variableAssignments)
@@ -57,10 +57,10 @@ object Main {
         SequentialAutoDiff.reverseMode(sequentialExpression, variableAssignments)
       }
       val (tForPar, resForPar) = timed("Parallel Forward Mode") {
-        Par_AutoDiff.forwardMode(parallelExpression, variableAssignments)
+        ParAutoDiff.forwardMode(parallelExpression, variableAssignments)
       }
       val (tRevPar, resRevPar) = timed("Parallel Reverse Mode") {
-        Par_AutoDiff.reverseMode(parallelExpression, variableAssignments)
+        ParAutoDiff.reverseMode(parallelExpression, variableAssignments)
       }
 
       println("\nForward Mode (Sequential):")
