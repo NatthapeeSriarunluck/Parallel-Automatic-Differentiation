@@ -11,7 +11,7 @@ import scala.util.parsing.combinator.*
 object ParParser extends JavaTokenParsers {
 
   def op: Parser[ParExpression] =
-    (sin | cos | tan | sec | csc | cot | arcsin | arccos | arctan | arcsec | arccsc | arccot | ln | exp | const | variable | ("(" ~> expr <~ ")"))
+    sin | cos | tan | sec | csc | cot | arcsin | arccos | arctan | arcsec | arccsc | arccot | ln | exp | const | variable | ("(" ~> expr <~ ")")
 
   def expr: Parser[ParExpression] = term ~ rep(("+" | "-") ~ term) ^^ {
     case term ~ Nil => term
@@ -35,8 +35,8 @@ object ParParser extends JavaTokenParsers {
   def factor: Parser[ParExpression] = expo ~ rep("^" ~ expo) ^^ {
     case expo ~ Nil => expo
     case expo ~ repExpos =>
-      repExpos.foldLeft(expo) {
-        case (base, "^" ~ exponent) => Power(base, exponent)
+      repExpos.foldLeft(expo) { case (base, "^" ~ exponent) =>
+        Power(base, exponent)
       }
   }
 

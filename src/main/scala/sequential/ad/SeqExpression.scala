@@ -14,7 +14,7 @@ sealed trait SeqExpression {
     case Cos(e)                   => e.findVar(name)
     case Tan(e)                   => e.findVar(name)
     case Ln(e)                    => e.findVar(name)
-    case _                        => None
+//    case _                        => None
   }
 }
 
@@ -89,9 +89,7 @@ case class Expo(e: SeqExpression) extends SeqExpression {
 case class Sum(e1: SeqExpression, e2: SeqExpression) extends SeqExpression {
   override def toString: String = s"Sum(${e1.toString},${e2.toString})"
 
-  override def forward(
-    varAssn: Map[String, Double],
-    variable: String
+  override def forward(varAssn: Map[String, Double], variable: String
   ): ValueAndPartial = {
     val vp1 = e1.forward(varAssn, variable)
     val vp2 = e2.forward(varAssn, variable)
